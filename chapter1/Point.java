@@ -19,9 +19,3 @@ class ManhattanPt extends PointD {
     y = _y;
   }
 }
-
-class Main {
-  public static void main(String args[]) {
-
-  }
-}

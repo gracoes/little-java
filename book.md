@@ -61,13 +61,13 @@ class Pepper extends SeasoningD {}
 ### Yes. We say *SeasoningD* is a datatype, and *Salt* and *Pepper* are its variants.
 Okay. But aren't all three classes introducing new types?
 
-### Yes, in a way. Now, is `new Salt()` a *SeasoningD*?
+### Yes, in a way. Now, is `new Salt()` a *SeasoningD*?
 Yes, it is, because `new Salt()` creates an instance of *Salt*, and every instance of *Salt* is also a *SeasoningD*.
 
 ### And `new Pepper()`?
 The same
 
-### What are abstract, class, and extends?
+### What are **abstract**, **class**, and **extends**?
 Easy:
 - **abstract** class introduces a datatype,
 - **class** introduces a variant, and
@@ -139,7 +139,8 @@ And because *CartesianPt* extends *PointD*, it is also a *PointD*
 Yes! And it's `x` field is 2 and it's `y` field is 3.
 
 ### Isn't all this obvious?
-Mostly, but that means we have used constructors before without defining them. How does that work?
+Mostly, but that means we have used constructors before without defining them.
+How does that work?
 
 ### When a class does not contain any fields, as in *Salt* and *Pepper*, a constructor is included by default.
 And that's the constructor we used before, right?
@@ -163,7 +164,7 @@ class OneMoreThan extends NumD {
   OneMoreThan(NumD _p) {
     predecessor = _p;
   }
-  //-----------------------------å
+  //-----------------------------
 }
 ```
 ### Draw the picture, too.
@@ -280,7 +281,7 @@ It defines a datatype *LayerD* and its two variants, *Base* and *Slice*
 
 ### What is `new Base(new Zero())`?
 A new instance of *Base* with a new instace of *Zero* as his `o` field.
-Its also a *LayerD* and an *Object*
+It's also a *LayerD* and an *Object*
 
 ### And what is `new Base(new Salt())`?
 The same but with an instance of *Salt* as the `o` field.
@@ -313,3 +314,196 @@ You bet
 
 ## Chapter 2
 
+### Remember points?
+```
+abstract class PointD {}
+
+class CartesianPt extends PointD {
+  int x;
+  int y;
+
+  CartesianPt(int _x, int_y) {
+    x = y;
+    y= _y
+  }
+  // ---------------------------
+}
+
+class ManhattanPt extends PointD {
+  int x;
+  int y;
+
+  ManhattanPt(int _x, int _y) {
+    x = _x;
+    y = _y;
+  }
+  // ------------------------------
+}
+```
+Sure, we just talked about them. But what are these labeled ovals about?
+
+### We will find out soon. Did you notice the big white space on the right?
+Yeah, it must be for drawing the picture of the classes.
+```
+              --------------
+              |    PointD   |
+              --------------
+                ^         ^
+               /           \
+              /             \
+----------------     ---------------
+| CartesianPt |      | ManhattanPt |
+---------------      ---------------
+```
+
+### How far is `new ManhattanPt(3,4)` from the Empire State Building?
+If the Empire State Building is the origin, we have to walk seven blocks: 3 over, 4 up.
+
+### And how far is `new CartesianPt(3,4)` from the origin?
+Square root of 4^2 + 3^, that is 5
+
+### Write the methods `distanceToO` using {, }, (, ). :. **return**. **int**, `+`, V\, and ^2, which
+### determine how far a point is from the origin.
+Of course, you can't write these methods. yet. Okay, you deserve something sweet for enduring this last question.
+
+### What do the methods produce?
+**int**s, which represent the distances to the origin
+
+### Here they are.
+```
+// PointD
+abstract int distanceToO();
+
+// CartesianPt
+int distanceToO() {
+  return squareRoot(x^2 + y^2);
+}
+
+// ManhattanPt
+int distanceToO() {
+  return x + y;
+}
+```
+### To what do *Point* *CartesianPt* and *ManhattanPt* in the comments refer?
+1. The classes in which this methods exist.
+1. They correspond to the unexplained labels in the definition of the datatype and its variants.
+
+### The labels remind us that we nned to insert these methods into *PointD* *CartesianPt*, and *ManhattanPt*.
+That's simple enough
+
+### How many times have we defined the method `distanceToO`?
+3 but the first one is different since it's preceded by **abstract**
+
+### Do **abstract** methods belong to the **abstract** class?
+Yes, they always do
+
+### An **abstract** method in an **abstract** class introduces an obligation, which says that all concrete classes that
+### extend this abstract class(!) must contain a matching method definition.
+#### (!) Directly or indirectly. That is, the concrete class may extend an abstract class that extends the abstract
+#### class with the obligation and so on.
+Ok
+
+### What is the value of `new ManhattanPt(3,4).distanceToO()`?
+7
+
+### How do we arrive at that value?
+By adding the `x` field which is 3 to the `y` field which is 4
+
+### What is the value of `new CartesianPt(3,4).distanceToO()`?
+The result of `squareRoot(3 * 3 + 4 * 4)`, which is 5
+
+### What does `squareRoot(x)` compute?
+The largest **int** that does not exceed the square root of `x`
+
+### Here is another datatype with its variants. What is different about them?
+```
+abstract class ShishD {}
+
+class Skewer extends ShishD {}
+
+class Onion extends ShishD {
+  ShishD s;
+
+  Onion(ShishD _s) {
+    s = _s;
+  }
+}
+
+class Lamb extends ShishD {
+  ShishD s;
+
+  Lamb(ShishD _s) {
+    s = _s;
+  }
+}
+
+class Tomato extends ShishD {
+  ShishD s;
+
+  Tomato(ShishD _s) {
+    s = _s;
+  }
+}
+```
+It's like *NumD* but has more variants
+```
+     -------------------------------------------
+     |                 ShishD                  |
+     -------------------------------------------
+        ^        ^         ^            ^
+       /         |          \            \
+      /          |           \            \
+---------    ---------    --------    ----------
+| Skwer |    | Onion |    | Lamb |    | Tomato |
+---------    ---------    --------    ----------
+```
+
+### Construct a *ShishD*
+`new Tomato(new Skewer())`
+
+### How about another one?
+`new Skewer()`
+
+### And a third?
+`new Lamb(new Onion())`
+
+### Are there only *Onion*s on this *ShishD*: `new Skewer()`?
+There are no *Onion*s
+
+### Are there only *Onion*s on this *ShishD*: `new Onion(new Skewer())`?
+*true*
+
+### And how about: `new Lamb(new Skewer())`?
+*false*, there is only *Lamb*
+
+### Is it true that
+```
+new Onion(
+  new Onion(
+    new Onion(
+      new Skewer())))
+```
+### contains only *Onion*s?
+*true*
+
+### And finally:
+```
+new Onion(
+  new Lamb(
+    new Onion(
+      new Skewer())))
+```
+*false*
+
+### Write the methods `onlyOnions` using {, }, (, ), .. ;, *true*, *false*, **return**, and **boolean**.
+Of course you can't write these methods, yet.
+Okay, you deserve a lollipop for enduring this kind of question again.
+
+### And what do they produce?
+**boolean**s
+
+### Here are the methods.
+```
+// ShishD
+abstract class boolean onlyOnions();
+```
