@@ -46,6 +46,7 @@ class Salt extends SeasoningD {}
 class Pepper extends SeasoningD {}
 ```
 ### The `D` is a reminder that the class is a datatype.
+```
   --------------
   | SeasoningD |
   --------------
@@ -55,6 +56,7 @@ class Pepper extends SeasoningD {}
 --------  ----------
 | Salt |  | Pepper |
 --------  ----------
+```
 
 ### Yes. We say *SeasoningD* is a datatype, and *Salt* and *Pepper* are its variants.
 Okay. But aren't all three classes introducing new types?
@@ -166,6 +168,7 @@ class OneMoreThan extends NumD {
 ```
 ### Draw the picture, too.
 Yes, they define a datatype and two variants.
+```
   --------------
   |    NumD    |
   --------------
@@ -175,6 +178,7 @@ Yes, they define a datatype and two variants.
 --------  ---------------
 | Zero |  | OneMoreThan |
 --------  ---------------
+```
 
 ### Is this a *NumD*: `new Zero()`?
 Yes since *Zero* extends *NumD*
@@ -306,3 +310,6 @@ A little bit, too much coffee does that.
 
 ### Ready for more?
 You bet
+
+## Chapter 2
+
