@@ -1,12 +1,22 @@
-abstract class ShishD {}
+abstract class ShishD {
+  abstract boolean onlyOnions();
+}
 
-class Skewer extends ShishD {}
+class Skewer extends ShishD {
+  boolean onlyOnions() {
+    return true;
+  }
+}
 
 class Onion extends ShishD {
   ShishD s;
 
   Onion(ShishD _s) {
     s = _s;
+  }
+
+  boolean onlyOnions() {
+    return s.onlyOnions();
   }
 }
 
@@ -16,6 +26,10 @@ class Lamb extends ShishD {
   Lamb(ShishD _s) {
     s = _s;
   }
+
+  boolean onlyOnions() {
+   return false;
+  }
 }
 
 class Tomato extends ShishD {
@@ -23,5 +37,9 @@ class Tomato extends ShishD {
 
   Tomato(ShishD _s) {
     s = _s;
+  }
+
+  boolean onlyOnions() {
+    return false;
   }
 }

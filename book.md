@@ -40,7 +40,7 @@ Sometimes we use it as if it were the collection.
 We don't know yet...
 
 ### Draw the picture that characterizes the essential relationships among the following classes.
-```
+``` java
 abstract class SeasoningD {}
 class Salt extends SeasoningD {}
 class Pepper extends SeasoningD {}
@@ -93,7 +93,7 @@ Its a pair of two coordinates in a Cartesian plane, basically a pair of numbers
 An intersection where two city streets meet.
 
 ### How do *CartesianPt* and *ManhattanPt* differ from *Salt* and *Pepper*?
-```
+``` java
 abstract class PointD {}
 
 class CartesianPt extends PointD {
@@ -153,7 +153,7 @@ Good. But what is `new PointD()`?
 That makes sense. Let's move on.
 
 ###  Do the following classes define another datatype with variants?
-```
+``` java
 abstract class NumD {}
 
 class Zero extends NumD {}
@@ -198,7 +198,7 @@ In our example, the field is `new Zero()`
 No it can be any instance of a *NumD*
 
 ###  What is
-```
+``` java
 new OneMoreThan(
   new OneMoreThan(
     new Zero()))
@@ -218,7 +218,7 @@ Only in concept
 It's similar but not the same
 
 ### And what is
-```
+``` java
 new OneMoreThan(
   new OneMoreThan(
     new OneMoreThan(
@@ -256,7 +256,7 @@ This must mean that everything is an *Object*.
 Ok.
 
 ### What do the following define?
-```
+``` java
 abstract class LayerD {}
 
 class Base extends LayerD {
@@ -315,7 +315,7 @@ You bet
 ## Chapter 2
 
 ### Remember points?
-```
+``` java
 abstract class PointD {}
 
 class CartesianPt extends PointD {
@@ -370,7 +370,7 @@ Of course, you can't write these methods. yet. Okay, you deserve something sweet
 **int**s, which represent the distances to the origin
 
 ### Here they are.
-```
+``` java
 // PointD
 abstract int distanceToO();
 
@@ -416,7 +416,7 @@ The result of `squareRoot(3 * 3 + 4 * 4)`, which is 5
 The largest **int** that does not exceed the square root of `x`
 
 ### Here is another datatype with its variants. What is different about them?
-```
+``` java
 abstract class ShishD {}
 
 class Skewer extends ShishD {}
@@ -477,7 +477,7 @@ There are no *Onion*s
 *false*, there is only *Lamb*
 
 ### Is it true that
-```
+``` java
 new Onion(
   new Onion(
     new Onion(
@@ -487,7 +487,7 @@ new Onion(
 *true*
 
 ### And finally:
-```
+``` java
 new Onion(
   new Lamb(
     new Onion(
@@ -503,7 +503,379 @@ Okay, you deserve a lollipop for enduring this kind of question again.
 **boolean**s
 
 ### Here are the methods.
-```
+``` java
 // ShishD
 abstract class boolean onlyOnions();
+
+// Skewer
+boolean onlyOnions() {
+  return true;
+}
+
+// Onion
+boolean onlyOnions() {
+  return x.onlyOnions();
+}
+
+// Lamb
+boolean onlyOnions() {
+  return false;
+}
+
+// Tomato
+boolean onlyOnions() {
+  return false;
+}
 ```
+
+### Good. How many methods have we defined?
+Five
+
+### Do abstract methods belong to the abstract class?
+Yes, always.
+
+### Does each variant of *ShishD* contain a method called `onlyOnions`?
+Yes, because *ShishD* contains an **abstract** method called `onlyOnions` that obligates each variant to define a matching, concrete method.
+
+### Is this always the case?
+Always
+
+### What do these concrete methods consume?
+Nothing, just as the **abstract** method says.
+
+### What do these concrete methods produce?
+**boolean**s, just as the **abstract** method says
+
+### What is the value of
+``` java
+new Onion(
+  new Onion(
+    new Skewer()))
+.onlyOnions()
+```
+**true**
+
+### And how do we determine the value of
+``` java
+new Onion(
+  new Onion(
+    new Skewer()))
+.onlyOnions()
+```
+It's the value of `new Onion(new Skewer()).onlyOnions()` which is the the value of `new Skewer().onlyOnions()` which is **true**
+
+### Which definition of onlyOnions must we use to determine the value of
+``` java
+new Onion(
+  new Onion(
+    new Skewer()))
+.onlyOnions()?
+```
+This object is an instance of *Onion*, so we need to use the definition of `onlyOnions` that belongs to the *Onion* variant.
+
+### What follows the word **return** in the `onlyOnions` method in *Onion*?
+`s.onlyOnions()`
+
+### What is the field `s` of the object
+``` java
+new Onion(
+  new Onion(
+  new Skewer()))
+```
+```java
+new Onion(new Skewer())
+```
+
+### Does `s` always stand for an *Onion*?
+No, it stands for *ShishD* and can be any type of its variant.
+
+### Then what is `s.onlyOnions()`?
+It should be
+``` java
+new Onion(new Skewer()).onlyOnions()
+```
+
+### Why do we need to know the meaning of
+```java
+new Onion(new Skewer()).onlyOnions()
+```
+Because it's the answer for
+``` java
+new Onion(
+  new Onion(
+    new Skewer()))
+.onlyOnions()?
+```
+
+### How do we determine the answer for
+```java
+new Onion(
+  new Skewer())
+.onlyOnions()
+```
+Let's see
+
+###  Which definition of onlyOnions must we use to determine the value of
+```java
+new Onion(
+  new Skewer())
+.onlyOnions()?
+```
+This object is an instance of *Onion*, so we need to use the definition of `onlyOnions` that belongs to the *Onion* variant
+
+### What follows the word **return** in the `onlyOnions` method in *Onion*?
+```java
+s.onlyOnions();
+```
+
+### What is the field `s` of the object
+```java
+new Onion(
+  new Skewer())
+```
+```java
+new Skewer()
+```
+
+### Then what is `s.onlyOnions()`?
+It's the value of
+```java
+new Skewer().onlyOnions()
+```
+
+### Why do we need to know the meaning of
+```java
+new Skewer().onlyOnions()
+```
+Because it's the value of
+```java
+new Onion(
+  new Skewer())
+.onlyOnions()
+```
+which is also the value of
+```java
+new Onion(
+  new Onion(
+    new Skewer()))
+.onlyOnions()
+```
+
+### How do we determine the answer for
+```java
+new Skewer().onlyOnions()
+```
+We need to determine one more time which version of `onlyOnions` we must use.
+
+### Is
+``` java
+new Skewer()
+```
+a *Skewer*?
+Yes
+
+### Then what is the answer?
+**true**
+
+### Why?
+Because that's what the method `onlyOnions` of *Skewer* always returns
+
+### Are we done?
+Yep, becaus the answer for
+```java
+new Onion(
+  new Onion(
+    new Skewer()))
+.onlyOnions()
+```
+is the same as the answer for
+```java
+new Onion(
+  new Skewer())
+.onlyOnions()
+```
+which is the same as the answer for
+```java
+new Skewer().onlyOnions()
+```
+which is **true**
+
+### What is the value of
+```java
+new Onion(
+  new Lamb(
+    new Skewer()))
+.onlyOnions()
+```
+**false**
+
+### Which definition of `onlyOnions` must we use to determine the value of
+```java
+new Onion(
+  new Lamb(
+    new Skewer()))
+.onlyOnions()
+```
+The definition of the *Onion* variant
+
+### What follows the word **return** in the `onlyOnions` method in *Onion*?
+```java
+s.onlyOnions()
+```
+
+### What is the field `s` of the object
+```java
+new Onion(
+  new Lamb(
+    new Skewer()))
+```
+It's the object built from
+```java
+new Lamb(
+  new Skewer())
+```
+
+### Then what is `s.onlyOnions()`?
+It's the value of
+```java
+new Lamb(
+  new Skewer())
+.onlyOnions()
+```
+
+### Why do we need to know the meaning of
+```java
+new Lamb(
+  new Skewer())
+.onlyOnions()
+```
+Because it is the answer of
+```java
+new Onion(
+  new Lamb(
+    new Skewer()))
+.onlyOnions()
+```
+
+### How do we determine the answer for
+```java
+new Lamb(
+  new Skewer())
+.onlyOnions()
+```
+We determine which version of `onlyOnions` we must use
+
+### And?
+It's the version that belongs to the *Lamb* variation
+
+### And now what is the answer?
+**false**
+
+### Are we done?
+Yes!
+Because the answer to
+```java
+new Onion(
+  new Lamb(
+    new Skewer()))
+.onlyOnions()
+```
+is equal to the answer of
+```java
+new Lamb(
+  new Skewer())
+.onlyOnions()
+```
+which is **false**
+
+### Describe the methods (i.e., the function) `onlyOnions` in your own words.
+The methods inform if a *ShishD* is composed only of onions
+
+### Describe how the methods (i.e., the function) `onlyOnions` accomplish this.
+For each layer of the *ShishD*, except for
+*Onion*, the corresponding method knows whether it is good or bad. The method for *Onion* needs to determine whether the remaining layers are only *Onions* sitting on a *Skewer*
+
+### Is
+```java
+new Tomato(
+  new Skewer())
+```
+### a *ShishD*?
+Yes because *Tomato* extends *ShishD*
+
+### Is
+```java
+new Onion(
+  new Tomato(
+    new Skewer()))
+```
+### a *ShishD*?
+Yes
+
+### And how about another *Tomato*?
+Sure
+
+#### Is
+```java
+new Tomato(
+  new Onion(
+    new Tomato(
+      new Skewer())))
+```
+### a vegetarian shish kebab?
+Yep
+
+### And
+```java
+new Onion(
+  new Onion(
+    new Onion(
+      new Skewer())))
+```
+Sure
+
+### Define the methods `isVegetarian`
+### which return **true** if the given object does not contain *Lamb*.
+#### Hint: The method for tomatoes is the same as the one for onions.
+```java
+// ShishD
+abtract boolean isVegetarian();
+
+// Skewer
+boolean isVegetarian() {
+  return true;
+}
+
+// Onion
+boolean isVegetarian() {
+  return s.isVegetarian();
+}
+
+// Tomato
+boolean isVegetarian() {
+  return s.isVegetarian();
+}
+
+// Lamb
+boolean isVegetarian() {
+  return false;
+}
+```
+
+### How many methods have we defined?
+5, one is **abstract** the others are concrete.
+
+### Do **abstract** methods belong to the **abstract** class?
+Always!
+
+### Does each variant of *ShishD* contain method called `isVegetarian`?
+Yep
+
+### Is this always the case?
+It must be
+
+### What do these concrete methods consume?
+Nothing
+
+### What do these concrete methods produces?
+**boolean**s
