@@ -454,7 +454,7 @@ It's like *NumD* but has more variants
        /         |          \            \
       /          |           \            \
 ---------    ---------    --------    ----------
-| Skwer |    | Onion |    | Lamb |    | Tomato |
+| Skewer |    | Onion |    | Lamb |    | Tomato |
 ---------    ---------    --------    ----------
 ```
 
@@ -879,3 +879,1158 @@ Nothing
 
 ### What do these concrete methods produces?
 **boolean**s
+
+### Collect all the pieces of *ShishD*. Here is the datatype
+```java
+abstract class ShishD {
+  abstract boolean onlyOnions();
+  abstract boolean isVegetarian();
+}
+```
+```java
+class Skewer extends ShishD {
+  boolean onlyOnions() {
+    return true;
+  }
+
+  boolean isVegetarian() {
+    return false;
+  }
+}
+
+class Onion extends ShishD {
+  ShishD s;
+
+  Onion(ShishD _s) {
+    s = _s;
+  }
+
+  boolean onlyOnions() {
+    return s.onlyOnions();
+  }
+
+  boolean isVegetarian() {
+    return s.isVegetarian();
+  }
+}
+
+class Lamb extends ShishD {
+  ShishD s;
+
+  Lamb(ShishD _s) {
+    s = _s;
+  }
+
+  boolean onlyOnions() {
+   return false;
+  }
+
+  boolean isVegetarian() {
+    return false;
+  }
+}
+
+class Tomato extends ShishD {
+  ShishD s;
+
+  Tomato(ShishD _s) {
+    s = _s;
+  }
+
+  boolean onlyOnions() {
+    return false;
+  }
+
+  boolean isVegetarian() {
+    return s.isVegetarian();
+  }
+}
+```
+
+### What do the following define?
+```java
+abstract class KebabD {}
+
+class Holder extends KebabD {
+  Object o;
+
+  Holder(Object _o) {
+    o = _o;
+  }
+  // ------------------
+}
+
+class Shallot extends KebabD {
+  KebabD k;
+
+  Shallot(KebabD _k) {
+    k = _k;
+  }
+  //-------------------------
+}
+
+class Shrimp extends KebabD {
+  KebabD k;
+
+  Shrimp(KebabD _k) {
+    k = _k;
+  }
+  //-------------------------
+}
+
+class Radish extends KebabD {
+  KebabD k;
+
+  Radish(KebabD _k) {
+    k = _k;
+  }
+  //-------------------------
+}
+```
+### Don't forget the picture
+It defines a datatype *KebabD* and its variants: *Holder*, *Shallot*, *Shrimp* and *Radish*
+```
+     -------------------------------------------
+     |                 KebabD                  |
+     -------------------------------------------
+        ^        ^           ^            ^
+       /         |            \            \
+      /          |             \            \
+---------    -----------    ----------    ----------
+| Holder |   | Shallot |    | Shrimp |    | Radish |
+---------    -----------    ----------    ----------
+```
+
+###  What is different about them?
+They are placed onto different *Holder*s
+
+### Here are some holders.
+```java
+abstract class RodD {}
+
+class Dagger extends RodD {}
+
+class Sabre extends RodD {}
+
+class Sword extends RodD {}
+```
+### Are they good ones?
+Sure and since every *RodD* is an *Object* they can be the `o` in *Holder*
+
+### Think of another kind of holder. Are you tired of drawing pictures, yet?
+We could move all of the food to various forms of plates.
+```java
+abstract class PlateD {}
+
+class Gold extends PlateD {}
+
+class Silver extends PlateD {}
+
+class Brass extends PlateD {}
+
+class Copper extends PlateD {}
+
+class Wood extends PlateD {}
+```
+
+### What is
+```java
+new Shallot(
+  new Radish(
+    new Holder(
+      new Dagger())))
+```
+A *KebabD*
+
+### Is
+```java
+new Shallot(
+  new Radish(
+    new Holder(
+      new Dagger())))
+```
+### a vegetarian *KebabD*?
+Yep
+
+### Is
+```java
+new Shallot(
+  new Radish(
+    new Holder(
+      new Gold())))
+```
+### a *KebabD*?
+Yep
+
+### Is
+```java
+new Shallot(
+  new Radish(
+    new Holder(
+      new Gold())))
+```
+### a vegetarian kebab?
+Yes
+
+### Lets define the method `isVeggie` which checks whether a kebab contains only vegetarian foods,
+### regardless of what *Holder* it is on
+```java
+// KebabD
+abstract boolean isVeggie();
+
+// Holder
+abstract boolean isVeggie() {
+  return true;
+}
+
+// Shallot
+boolean isVeggie() {
+  return k.isVeggie();
+}
+
+// Shrimp
+boolean isVeggie() {
+  return false;
+}
+
+// Radish
+boolean isVeggie() {
+  return k.isVeggie();
+}
+```
+
+### What is the value of
+```java
+new Shallot(
+  new Radish(
+    new Holder(
+      new Dagger())))
+.isVeggie()
+```
+**true**
+
+### What is
+```java
+new Shallot(
+  new Radish(
+    new Holder(
+      new Dagger())))
+```
+It's an instance of *KebabD* of the *Shallot* variant
+
+### What is the value of
+```java
+new Shallot(
+  new Radish(
+    new Holder(
+      new Gold())))
+.isVeggie()
+```
+Also **true**
+
+### And what is
+```java
+new Shallot(
+  new Radish(
+    new Holder(
+      new Gold())))
+```
+It's also an instance of *KebabD* of the *Shallot* variant except it is on a gold plate
+
+### What type of value is
+```java
+new Shallot(
+  new Radish(
+    new Holder(
+      new Integer(52))))
+.isVeggie()
+```
+**bolean**
+
+### What type of value is
+```java
+new Shallot(
+  new Radish(
+    new Holder(
+      new OneMoreThan(
+        new Zero()))))
+.isVeggie()
+```
+Also **boolean**
+
+### What type of value is
+```java
+new Shallot(
+  new Radish(
+    new Holder(
+      new Boolean(false))))
+.isVeggie()
+```
+**boolean**
+
+### Does that mean `isVeggie` works for all five kinds of *Holder*s?
+Yes and all kind of *Object*s
+
+### What is the holder of
+```java
+new Shallot(
+  new Radish(
+    new Holder(
+      new Dagger())))
+```
+```java
+new Dagger()
+```
+
+### What is the holder of
+```java
+new Shallot(
+  new Radish(
+    new Holder(
+      new Gold())))
+```
+```java
+new Gold()
+```
+
+### What is the holder of
+```java
+new Shallot(
+  new Radish(
+    new Holder(
+      new Integer(52))))
+```
+All the food is now on the *Integer* 52
+
+### What is the value of
+```java
+new Shallot(
+  new Radish(
+    new Holder(
+      new Dagger())))
+.whatHolder()
+```
+A dagger
+
+### What is the value of
+```java
+new Shallot(
+  new Radish(
+    new Holder(
+      new Gold())))
+.whatHolder()
+```
+A gold plate
+
+### What is the value of
+```java
+new Shallot(
+  new Radish(
+    new Holder(
+      new Integer(52))))
+.whatHolder()
+```
+An *Integer*, whose underlying **int** is 52
+
+### What type of values do the methods (i. e., the function) of `whatHolder` produce?
+*Object*s
+
+### Here is the abstract method `whatHolder`.
+```java
+// KebabD
+abstract Object whatHolder()
+```
+If we add this method to *KebabD* , then we must add a method definition to each of the four variants.
+
+### What is the value of
+```java
+new Holder(
+  new Integer(52))
+.whatHolder()
+```
+```java
+new Integer(52)
+```
+
+
+### What is the value of
+```java
+new Holder(
+  new Sword())
+.whatHolder()
+```
+```java
+new Sword()
+```
+
+### What is the value of
+```java
+new Holder(b).whatHolder()
+```
+### if `b` is some object?
+It is `b`
+
+### Define the concrete method that goes into *Holder*
+```java
+Object whatHolder() {
+  return o;
+}
+```
+
+### What is the value of
+```java
+new Radish(
+  new Shallot(
+    new Shrimp(
+      new Holder(
+        new Integer(52)))))
+.whatHolder()
+```
+```java
+new Integer(52)
+```
+
+### What is the value of
+```java
+new Shallot(
+  new Shrimp(
+    new Holder(
+      new Integer(52))))
+.whatHolder()
+```
+```java
+new Integer(52)
+```
+
+### What is the value of
+```java
+new Shrimp(
+  new Holder(
+    new Integer(52)))
+.whatHolder()
+```
+```java
+new Integer(52)
+```
+
+### Does this mean that the value of
+```java
+new Radish(
+  new Shallot(
+    new Shrimp(
+      new Holder(
+        new Integer(52)))))
+.whatHolder()
+```
+### is the same as
+```java
+new Shallot(
+  new Shrimp(
+    new Holder(
+      new Integer(52))))
+.whatHolder()
+```
+### which is the same as
+```java
+new Shrimp(
+  new Holder(
+    new Integer(52)))
+.whatHolder()
+```
+### which is the same as
+```java
+new Holder(
+  new Integer(52))
+.whatHolder()
+```
+Yep
+
+### Here is the datatype and one of its variants.
+```java
+abstract class Kebabv {
+  abstract boolean isVeggie();
+  abstract Object whatHolder();
+}
+
+class Holder extends Kebabv {
+  Object o;
+  Holder(Object _0) {
+    o = _0;
+  }
+  // ------------------
+
+  boolean isVeggie() {
+    return true;
+  }
+
+  Object whatHolder() {
+    return o;
+  }
+}
+```
+### Collect the remaining variants
+```java
+class Shallot extends KebabD {
+  KebabD k;
+
+  Shallot(KebabD _k) {
+    k = _k;
+  }
+  //-------------------------
+
+  boolean isVeggie() {
+    return k.isVeggie();
+  }
+
+  Object whatHolder() {
+    return k.whatHolder();
+  }
+}
+
+class Shrimp extends KebabD {
+  KebabD k;
+
+  Shrimp(KebabD _k) {
+    k = _k;
+  }
+  //-------------------------
+
+  boolean isVeggie() {
+    return false;
+  }
+
+  Object whatHolder() {
+    return k.whatHolder();
+  }
+}
+
+class Radish extends KebabD {
+  KebabD k;
+
+  Radish(KebabD _k) {
+    k = _k;
+  }
+  //-------------------------
+
+  boolean isVeggie() {
+    return k.isVeggie();
+  }
+
+  Object whatHolder() {
+    return k.whatHolder();
+  }
+}
+```
+
+### Are there any other *KebabD* foods besides *Shallot*, *Shrimp*, and *Radish*?
+Well, *Holder* is also a *KebabD* but not a food
+
+### Can we add more foods?
+Sure
+
+### Let's define another *KebabD*
+```java
+class Pepper extends KebabD {
+  KebabD k;
+
+  Pepper(KebabV _k) {
+    k = _k;
+  }
+  // ---------------------
+
+boolean isVeggie() { return k.isVeggieO; }
+
+Object whatHolder() { return k.whatHolderO; }
+```
+### Why does it incluede `isVeggie` and `whatHolder` methods
+Because it **extends** from *KebabD* and since these methods are **abstract** all of the variants must have them
+
+### Is it obvious how the new methods work?
+Yep
+
+### Vhich of these points is closer to the origin: `new ManhattanPt(3,4)` or new ManhattanPt(1,5)`?
+The second one because its distance to origin is 6 while the first one is 7
+
+### Good. Which of the following points is closer to the origin: `new CartesianPt(3,4)` or `new CartesianPt(12,5)`?
+The first one since its distance to origin is 5 while the second one is 13
+
+###  We added the method closerToO to CartesianPt. It consumes another CartesianPt and determines whether the constructed or the consumed point is closer to the origin.
+```java
+// CartesianPt
+boolean closerToO(CartesianPt p) {
+  return distanceToO() <= p.distanceToO();
+}
+```
+### Add the corresponding method to ManhatthanPt
+```java
+// ManhattanPt
+boolean closerToO(ManhatthanPt p) {
+  return distanceToO() <= p.distanceToO();
+}
+```
+
+### What is the value of
+```java
+new ManhattanPt(3,4)
+.closerToO(new ManhattanPt(1,5))
+```
+**false**
+
+### What is the value of
+```java
+new CartesianPt(12,5)
+.closerToO(new CartesianPt(3,4))
+```
+**false**
+
+### What is the value of
+```java
+new ManhattanPt(1,5)
+.closerToO(new ManhattanPt(3,4))
+```
+**true**
+
+### So finally what is the value of
+```java
+new CartesianPt(3,4)
+.closerToO(new ManhattanPt(1,5))
+```
+Nonsense
+
+### Why?
+Because the `closerToO` method of *CartesianPt* consumes another *CartesianPt*
+
+### How can we fix that?
+By changing the definition of `closerToO` to consume *PointD*
+
+### If we do that, can we still determine the value of `p.distanceToO()`?`
+Yep, because the definition of *PointD* obligates every variant to have a method `distanceToO`
+
+### Why does it help to replace (CartesianPt p) by (PointD p)?
+Because every *CartesianPt* is a *PointD* and every *ManhattanPt* is also a *PointD*
+
+
+### Here is the improved *CartesianPt*
+```java
+// CartesianPt
+boolean closerToO(PointD p) {
+  return distanceToO() <= p.distanceToO();
+}
+```
+
+### Improve the definition of *ManhattanPt*.
+```java
+// ManhattanPt
+boolean closerToO(PointD p) {
+  return distanceToO() <= p.distanceToO();
+}
+```
+
+### Is the definition of `closerToO` in *CartesianPt* the same as the one in *ManhattanPt*?
+Yes
+
+###  Correct, and therefore we can add a copy to the abstract class *PointD and delete the definitions from the variants.
+```java
+// PointD
+boolean closerToO(PointD p) {
+  return distanceToO() <= p.distanceToO();
+}
+```
+Looks good
+
+### What else do the two point variants have in common?
+The fields `x` and `y`.
+Shouldn't we lift them too?
+
+### Yes. It's tricky, but here is a start.
+```java
+abstract class PointD {
+  int x;
+  int y;
+
+  boolean closerTo(PointD p) {
+    return distanceToO() <= p.distanceToO();
+  }
+  abstract int distanceToO();
+}
+```
+This not only lifts `x` and `y`, it also introduces a new constructor.
+
+### Absolutely. And we need to change how a *CartesianPt* is built. Define *ManhattanPt*.
+```java
+class CartesianPt extends PointD {
+  CartesianPt(int _x, int _y) {
+   super(_x, _y);
+  }
+
+  int distanceToO() {
+    return (int)(Math.sqrt(x*x + y*y));
+  }
+}
+```
+```java
+class ManhattanPt extends PointD {
+  ManhattanPt(int _x, int _y) {
+    super(_x, _y);
+  }
+
+  int distanceToO() {
+    return x + y;
+  }
+}
+```
+But what does `super(_x, _y)` means?
+
+### The expressions `super(_x,_y)` in the constructors *CartesianPt* and *ManhattanPt* create a *PointD* with the appropriate fields, and the respective constructor guarantees that the point becomes a *CartesianPt* or a *ManhattanPt*.
+"That's simple"
+
+## Do we now have everything that characterizes *PointD*s in the datatype?
+Yes and the things that distinguish the two variants from each other exist in the corresponding variants.
+
+## Chapter 3
+
+### Do you like to eat pizza?
+```java
+abstract class PizzaD {}
+
+class Crust extends PizzaD {}
+
+class Cheese extends PizzaD {
+  PizzaD p;
+
+  Cheese(PizzaD _p) {
+    p = _p;
+  }
+  // -----------------------
+}
+
+class Olive extends PizzaD {
+  PizzaD p;
+
+  Olive(PizzaD _p) {
+    p = _p;
+  }
+  // ------------------------
+}
+
+class Anchovy extends PizzaD {
+  PizzaD p;
+
+  Anchovy(PizzaD _p) {
+    p = _p;
+  }
+  // -------------------------
+}
+```
+Looks like good toppings. Let's add *Sausage*
+```java
+class Sausage extends PizzaD {
+  PizzaD p;
+
+  Sausage(Pizza _p) {
+    p = _p;
+  }
+  // -----------------------
+}
+```
+
+### Here is our favorite pizza
+```java
+new Anchovy(
+  new Olive(
+    new Anchovy(
+      new Anchovy(
+        new Cheese(
+          new Crust())))))
+```
+Yuck!
+
+### How about removing the anchovies?
+That would be better
+
+### Let's remove them. What is the value of
+```java
+new Anchovy(
+  new Olive(
+    new Anchovy(
+      new Anchovy(
+        new Cheese(
+          new Crust())))))
+.remA()
+```
+```java
+new Olive(
+  new Cheese(
+    new Crust()))
+```
+
+### What is the value of
+```java
+new Sausage(
+  new Olive(
+    new Anchovy(
+      new Sausage(
+        new Cheese(
+          new Crust())))))
+.remA()
+```
+It should be a sausage, olive and cheese piza like:
+```java
+new Sausage(
+  new Olive(
+    new Sausage(
+      new Cheese(
+        new Crust()))))
+```
+
+### Does `remA` belongs to the datatype *PizzaD* and its variants?
+Yes and it produces them too
+
+### Define the methods that belong to the five variants. Here is a start.
+```java
+// Pizza
+abstract PizzaD remA();
+
+// Crust
+PizzaD remA() {
+  return new Crust();
+}
+
+// Cheese
+PizzaD remA() {
+  return new Cheese(p.remA());
+}
+
+// Olive
+PizzaD remA() {
+  return new Olive(p.remA());
+}
+
+// Sausage
+PizzaD remA() {
+  return new Sausage(p.remA());
+}
+
+// Anchovy
+PizzaD remA() {
+  return p.remA();
+}
+```
+
+### Explain why we use `new Cheese` ... , `new Olive` ... , and `new Sausage´ ... when we define these methods.
+Because we need to produce a new *PizzaD* to be on the top of the pizza that `p.remA()` produces.
+
+### The methods remA must produce a *PizzaD*, so let's use new *Crust*, the simplest *PizzaD* , for the method in Anchovy.
+```java
+// Anchovy
+abstract PizzaD remA() {
+  return new Crust();
+}
+```
+Yes, and now the methods of `remA` produce pizzas without any anchovies on them
+
+###  Let's try it out on a small pizza:
+```java
+new Anchovy(
+  new Crust())
+.remA().
+```
+Since the object is an *Anchovy* the answer is `new Crust()`
+
+### Is
+```java
+new Crust()
+```
+### like
+```java
+new Anchovy(
+  new Crust())
+.remA().
+```
+### without anchovy?
+Yes, but what if we had more anchovies
+
+### No problem. Here is an example:
+```java
+new Anchovy(
+  new Anchovy(
+    new Crust()))
+.remA().
+```
+The answer is also `new Crust()`
+
+### Okay, so what if we had an olive and cheese on top:
+```java
+new Olive(
+  new Cheese(
+    new Anchovy(
+      new Anchovy(
+        new Crust()))))
+.remA()
+```
+Since this is an *Olive* and its `p` field is
+```java
+new Cheese(
+    new Anchovy(
+      new Anchovy(
+        new Crust())))
+```
+the answer is
+```java
+new Cheese(
+  new Anchovy(
+    new Anchovy(
+      new Crust())))
+.remA()
+```
+
+### Then, what is the value of
+```java
+new Olive(p.remA())
+```
+### where `p` stands for
+```java
+new Cheese(
+  new Anchovy(
+    new Anchovy(
+      new Crust())))
+```
+It's the value of
+```java
+new Cheese(
+  new Anchovy(
+    new Anchovy(
+      new Crust())))
+.remA()
+```
+
+### What is the value of
+```java
+new Cheese(
+  new Anchovy(
+    new Anchovy(
+      new Crust())))
+.remA()
+```
+Since this is a *Chesse* it's the value of
+```java
+new Cheese(p.remA())
+```
+
+### And what is the value of
+```java
+new Cheese(
+  new Anchovy(
+    new Anchovy(
+      new Crust())))
+.remA()
+```
+It is the pizza that
+```java
+new Anchovy(
+  new Anchovy(
+    new Crust())))
+.remA()
+```
+produces, with cheese added on top.
+
+### Do we know the value of
+```java
+new Anchovy(
+  new Anchovy(
+    new Crust())))
+.remA()
+```
+Yes, it produces `new Crust()`
+
+### Does that mean that `new Crust()` is the answer?
+No, its still missing the cheese and olive
+
+### Does it matter in which order we add those two toppings?
+Yes, first is cheese than the olive
+
+### So what is the final answer?
+```java
+new Olive(
+  new Cheese(
+    new Crust()))
+```
+
+### Let's try one more example
+```java
+new Cheese(
+  new Anchovy(
+    new Cheese(
+      new Crust())))
+.remA()
+```
+### What kind of pizza should this make
+A double-cheese one
+
+### Check it out!
+The object is an instance of *Cheese* so the value is
+```java
+new Cheese(p.remA())
+```
+where `p` is
+```java
+new Anchovy(
+  new Cheese(
+    new Crust()))
+```
+
+### Doens't that mean the result is
+```java
+new Cheese(
+  new Anchovy(
+    new Cheese(
+      new Crust())).remA())
+```
+Yes
+
+### What about
+```java
+new Anchovy(
+  new Cheese(
+    new Crust()))
+.remA()
+```
+Since this an *Anchovy* it produces `new Crust()`
+
+### And the answer is `new Crust()`?
+Yep
+
+### Does that mean the final answer is
+```java
+new Cheese(
+  new Crust())
+```
+Yes! But that's not the answer we want
+
+### What do we want?
+A double-cheese pizza like
+```java
+new Cheese(
+  new Cheese(
+    new Crust()))
+```
+
+### Which `remA` method do we need to change to get the cheese back?
+The `remA` of *Anchovy*, it should be
+```java
+// Anchovy
+PizzaD remA() {
+  return p.remA();
+}
+```
+
+### Does this `remA` still belong to *PizzaD*?
+Yes because `remA` always return a *PizzaD*
+
+### We could add cheese on top of the anchovies.
+Yes, that would hide their taste, too.
+
+### What kind of pizza is
+```java
+new Olive(
+  new Anchovy(
+    new Cheese(
+      new Anchovy(
+        new Crust()))))
+.topAwC() // topAnchovyWithCheese
+```
+A pizza like
+```java
+new Olive(
+  new Cheese(
+    new Anchovy(
+      new Cheese(
+        new Cheese(
+          new Anchovy(
+            new Crust()))))))
+```
+
+### And what is
+```java
+new Olive(
+    new Cheese(
+      new Sausage(
+        new Crust())))
+.topAwC()
+```
+The same pizza
+
+### DefiIle the remaiIling methods.
+```java
+// PizzaD
+abstract PizzaD topAwC();
+
+// Crust
+PizzaD topAwC() {
+  return new Crust();
+}
+
+// Cheese
+PizzaD topAwC() {
+  return new Cheese(p.topAwC());
+}
+
+// Olive
+PizzaD topAwC() {
+  return new Olive(p.topAwC());
+}
+
+// Anchovy
+PizzaD topAwC() {
+  return new Cheese(new Anchovy(p.topAwC()));
+}
+
+// Sausage
+PizzaD topAwC() {
+  return new Sausage(p.topAwC());
+}
+```
+
+### Take a look at this method.
+```java
+// Anchovy
+PizzaD topAwc() {
+  return p.topAwC()
+}
+```
+It's missing the cheese and the anchovies
+
+### How many layers of cheese are in the result of
+```java
+(
+  new Olive(
+    new Anchovy(
+      new Cheese(
+        new Anchovy(
+          new Crust()))))
+.remA())
+  .topAwC()
+```
+One layer because `remA` removes all the anchovies so no extra layer of cheese is added with `topAwC`
+
+### How many layers of cheese are in the result of
+```java
+(
+  new Olive(
+    new Anchovy(
+      new Cheese(
+        new Anchovy(
+          new Crust()))))
+.topAwC())
+  .remA()
+```
+Three layers since `topAwC` adds two extra layers
+
+### Perhaps we should replace every anchovy with cheese.
+We just did something like that.
+
+### Is it true that for each anchovy in `x` `x.topAwc().remA()` adds some cheese?
+Yes and also removes all the anchovies
+
+### So `x.topAwc().remA()` is a way to substitute all anchovies with cheese by looking at each topping of a pizza and adding cheese on top of each anchovy and then looking at each topping again, including all the new cheese, and removing the anchovies.
+Nicely put
