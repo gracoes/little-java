@@ -4,3 +4,6 @@
 If a field of a variant belongs to the same datatype, the method may call the corresponding method of the field in computing the function.
 
 3. When writing a function that returns values of a datatype, use **new** to create these values.
+
+4. When writing several functions for the same self-referential datatype,
+use visitor protocols so that all methods for a function can be found in a single class.

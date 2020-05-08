@@ -2034,3 +2034,849 @@ Yes and also removes all the anchovies
 
 ### So `x.topAwc().remA()` is a way to substitute all anchovies with cheese by looking at each topping of a pizza and adding cheese on top of each anchovy and then looking at each topping again, including all the new cheese, and removing the anchovies.
 Nicely put
+
+###  Here is a different description: "The methods look at each topping of a pizza and replace each anchovy with cheese'
+### Define the methods that match this description. Call them `subAbC`. Here is the abstract method.
+```java
+// PizzaD
+abstract PizaD subAbC();
+
+// Crust
+PizzaD subAbc() {
+  return new Crust();
+}
+
+// Cheese
+PizzaD subAbC() {
+  return new Cheese(p.subAbC());
+}
+
+// Olive
+PizzaD subAbC() {
+  return new Olive(p.subAbc());
+}
+
+// Anchovy
+PizzaD subAbc() {
+  return new Cheese(p.subAbC());
+}
+
+// Sausage
+PizzaD subAbC() {
+  return new Sausage(p.subAbC());
+}
+```
+
+### Does this skeleton look familiar?
+Yes, it's similar to `remA` and `topAwC`
+
+###  Collection time.
+```java
+abstract class PizzaD {
+  abstract PizzaD remA();
+  abstract PizzaD topAwC();
+  abstract PizzaD subAbC();
+}
+
+class Crust extends PizzaD {
+  PizzaD remA() {
+    return new Crust();
+  }
+
+  PizzaD topAwC() {
+    return new Crust();
+  }
+
+  PizzaD subAbC() {
+    return new Crust();
+  }
+}
+
+class Cheese extends PizzaD {
+  PizzaD p;
+
+  Cheese(PizzaD _p) {
+    p = _p;
+  }
+  // -----------------------
+
+  PizzaD remA() {
+    return new Cheese(p.remA());
+  }
+
+  PizzaD topAwC() {
+    return new Cheese(p.topAwC());
+  }
+
+  PizzaD subAbC() {
+    return new Cheese(p.subAbC());
+  }
+}
+
+class Olive extends PizzaD {
+  PizzaD p;
+
+  Olive(PizzaD _p) {
+    p = _p;
+  }
+  // ------------------------
+
+  PizzaD remA() {
+    return new Olive(p.remA());
+  }
+
+  PizzaD topAwC() {
+    return new Olive(p.topAwC());
+  }
+
+  PizzaD subAbC() {
+    return new Olive(p.subAbC());
+  }
+}
+
+class Anchovy extends PizzaD {
+  PizzaD p;
+
+  Anchovy(PizzaD _p) {
+    p = _p;
+  }
+  // -------------------------
+
+  PizzaD remA() {
+    return p.remA();
+  }
+
+  PizzaD topAwC() {
+    return new Cheese(new Anchovy(p.topAwC()));
+  }
+
+  PizzaD subAbC() {
+    return new Cheese(p.subAbC());
+  }
+}
+
+class Sausage extends PizzaD {
+  PizzaD p;
+
+  Sausage(PizzaD _p) {
+    p = _p;
+  }
+  // -----------------------
+
+  PizzaD remA() {
+    return new Sausage(p.remA());
+  }
+
+  PizzaD topAwC() {
+    return new Sausage(p.topAwC());
+  }
+
+  PizzaD subAbC() {
+    return new Sausage(p.subAbC());
+  }
+}
+
+```
+
+### Let's add more *PizzaD* foods.
+Good idea
+
+### Here is one addition: *Spinach*.
+```java
+class Spinach extends PizzaD {
+  PizzaD p;
+
+  Spinach(PizzaD _p) {
+    p = _p;
+  }
+  // ----------------------------
+
+  PizzaD remA() {
+    return new Spinach(p.remA());
+  }
+
+  PizzaD topAwC() {
+    return new Spinach(p.topAwC());
+  }
+
+  PizzaD subAbC() {
+    return new Spinach(p.subAbC());
+  }
+}
+```
+
+### Do we need to change *PizzaD*, *Crust*, *Cheese*, *Olive*, *Anchovy*, or *Sausage*?
+Nope
+
+### Isn't that neat?
+Yep. Unfortunately, the more things we want to do with *PizzaD*, the more methods we must add.
+
+### True enough. And that means cluttered classes. Is there a better way to express all this?
+Hope so. However we don't know of a better way to organize these definitions yet.
+
+### Don't worry. We are about to discover how to make more sense out of such things.
+That's great
+
+### And now you can replace anchovy with whatever pizza topping you want.
+Even better
+
+## Chapter 4
+
+###  Wasn't this last collection overwhelming?
+A little bit, seven classes and each had three methods
+
+### Could it get worse?
+You bet, for every new thing in *PizzaD* it needed to be added to each concrete class.
+
+### Why does that become overwhelming?
+That's too much man!
+Because it becomes more and more difficult to understand the rationale for each of the methods in a variant and what the relationship is between methods of the same name in the different variants.
+
+### Correct. Let's do something about it. Take a close look at this visitor class.
+```java
+class OnlyOnionsV {
+  boolean forSkewer() {
+    return true;
+  }
+
+  boolean forOnions(ShishD s) {
+    return s.onlyOnions();
+  }
+
+  boolean forLamb(ShishD s) {
+    return false;
+  }
+
+  boolean forTomato(ShishD s) {
+    return false;
+  }
+}
+```
+These methods look familiar. Have we seen them before?
+
+### Almost. Each of them corresponds to an `onlyOnions` method in one of the variants of *ShishD*.
+Ahh I see. The only difference is that they are all in one class, a visitor, whose name is *onlyOnionsV*
+
+### Is `onlyOnions` different from *OnlyOnionsV*?
+Absolutely, `onlyOnions` is a method and *OnlyOnionsV* is a class
+
+### And that's the whole point.
+What point?
+
+### We want all the methods in one class
+What methods?
+
+### Those methods that would have the same name if we placed them into the variants of a datatype in one class.
+If we could do that, it would be much easier to understand what action these methods perform.
+
+### That's what we are about to do. We are going to separate the action from the datatype
+Let's do it
+
+### What is the difference between the method `onlyOnions` in the *Onion* variant and
+### the `forOnions` in the visitor *OnlyOnionsV*?
+`forOnions` takes a *ShishD* as the single argument
+
+### Yes, that is the difference.
+### Are the other `for` methods in *OnlyOnionsV* related to their counterparts in the sameway?
+Yes
+
+### It is time to discuss the boring part.
+What boring part?
+
+### The boring part tells us how to make all of this work
+True. we still don't know how to make *ShishD* and its variants work with this visitor class,
+which contains all the action.
+
+### Now take a look at this.
+```java
+abstract class ShishD {
+  OnlyOnionsV ooFn = new OnlyOnionsV();
+
+  abstract boolean onlyOnions();
+}
+
+class Skewer extends ShishD {
+  boolean onlyOnions() {
+    return ooFn.forSkewer();
+  }
+}
+
+class Onion extends ShishD {
+  ShishD s;
+
+  Onion(ShishD _s) {
+    s = _s;
+  }
+
+  boolean onlyOnions() {
+    return ooFn.forOnions(s);
+  }
+}
+
+class Lamb extends ShishD {
+  ShishD s;
+
+  Lamb(ShishD _s) {
+    s = _s;
+  }
+
+  boolean onlyOnions() {
+   return ooFn.forLamb(s);
+  }
+}
+
+class Tomato extends ShishD {
+  ShishD s;
+
+  Tomato(ShishD _s) {
+    s = _s;
+  }
+
+  boolean onlyOnions() {
+    return ooFn.forTomato(s);
+  }
+}
+```
+This is a strange set of definitions. All the `onlyOnions` methods in the variants look alike.
+Each of them uses an instance of *OnlyOnionsV* , which is created in the datatype,
+to invoke a `for` method with a matching name.
+
+### What does the `forOnion` method in *Onion* consume?
+If "consume" refers to what follows the name between parentheses,
+the method consumes `s`, which is the rest of the shish.
+
+### That's what "consumption" is all about. And what does the `forSkewer` method in Skewer consume?
+Nothing
+
+### So what does the `(ShishD s)` mean in the definition of `forOnion`?
+It means that `forOnion` needs to consume a *ShishD*, which is the rest of the shish, to produce an answer
+
+### Very good. The notation `(ShishD s)` means that `forOnion` consumes a *ShishD*
+### and that between `{` and `}`, `s` stands for that shish
+That makes sense and explains `s.onlyOnions()`.
+
+### Explain `s.onlyOnions()`
+`s.onlyOnions` is asking the rest of the shish if there is only onions below the current layer
+
+### Explain `ooFn.forOnion(s)`.
+`ooFn.forOnion(s)` takes the rest of the shish, `s` and checks if there are only onions below as if
+the current layer was an onion
+
+### So what is the value of
+```java
+new Onion(
+  new Onion(
+    new Skewer()))
+.onlyOnions()
+```
+**true**
+
+### And how do we determine that value with these new definitions?
+We start with the onlyOnions method in *Onion*, but it immediately uses the `forOnion` method on the rest of the shish.
+
+### And what does the `forOnion` method do?
+It uses the `onlyOnions` method of `s`
+
+### Isn't that where we started from?
+Yes, we're going round and round.
+
+### Welcome to the carousel.
+Fortunately, the shish shrinks as it goes around, and when we get to the skewer we stop.
+
+### And then the ride is over and we know that for this example the answer is **true**.
+That's exactly it.
+
+### Do we need to remember that we are on a carousel?
+No! Now that we understand how the separation of data and action works, we only need to look at the action part to understand how things work.
+
+### Is one example enough?
+No, let's look at some of the other actions on shishes and pizzas.
+
+### Let's look at `isVegetarian` next. Here is the beginning of the protocol.
+#### (For us protocol is an agreement on how classes that specify a datatype and its variants interact with classes
+#### that realize functions on that datatype)
+```java
+abstract class ShishD {
+  OnlyOnionsV ooFn = new OnlyOnionsV();
+  IsVegetarian ivFn = new IsVegetarian();
+
+  abstract boolean onlyOnions();
+  abstract boolean isVegetarian();
+}
+```
+What about it?
+
+### Write the rest!
+```java
+class Skewer extends ShishD {
+  boolean onlyOnions() {
+    return ooFn.forSkewer();
+  }
+
+  boolean isVegetarian() {
+    return ivFn.forSkewer();
+  }
+}
+
+class Onion extends ShishD {
+  ShishD s;
+
+  Onion(ShishD _s) {
+    s = _s;
+  }
+
+  boolean onlyOnions() {
+    return ooFn.forOnion(s);
+  }
+
+  boolean isVegetarian() {
+    return ivFn.forOnion(s);
+  }
+}
+
+class Lamb extends ShishD {
+  ShishD s;
+
+  Lamb(ShishD _s) {
+    s = _s;
+  }
+
+  boolean onlyOnions() {
+   return ooFn.forLamb(s);
+  }
+
+  boolean isVegetarian() {
+    return ivFn.forLamb(s);
+  }
+}
+
+class Tomato extends ShishD {
+  ShishD s;
+
+  Tomato(ShishD _s) {
+    s = _s;
+  }
+
+  boolean onlyOnions() {
+    return ooFn.forTomato(s);
+  }
+
+  boolean isVegetarian() {
+    return ivFn.forTomato(s);
+  }
+}
+
+```
+
+### That's why we call this part boring.
+True, there's very little to think about. It could be done automatically.
+
+### How do we define the visitor?
+Does that refer to the class that contains the actions?
+
+### Yes. that one. Define the visitor.
+```java
+class IsVegetarianV {
+  boolean forSkewer() {
+    return true;
+  }
+
+  boolean forOnion(ShishD s) {
+    return s.isVegetarian();
+  }
+
+  boolean forLamb(ShishD s) {
+    return false;
+  }
+
+  boolean forTomato(ShishD s) {
+    return s.isVegetarian();
+  }
+}
+```
+
+### Are we moving fast?
+Yes, but there are only a few interesting parts.
+The protocol is always the same and boring; the visitor is always closely related to what we saw in chapter 2
+
+### Is
+```java
+new Anchovy(
+  new Olive(
+    new Anchovy(
+      new Cheese(
+        new Crust()))))
+```
+### a shish kebab?
+Not even close, it's a pizza
+
+### So what do we do next?
+We define the protocol for the methods of *PizzaD*: `remA`, `topAwC` and `subAwC`
+
+### Great! Here is the abstract portion of the protocol.
+```java
+abstract class PizzaD {
+  RemAV remFn = new RemAV();
+  TopAwC topAwCFn = new TopAwC();
+  SubAbC subAbC = new SubAbC();
+
+  abstract PizzaD remA(); // remove anchovies
+  abstract PizzaD topAwC(); // top anchovies with cheese
+  abstract PizzaD subAbC(); // substitute anchovies by cheese
+}
+
+class Crust extends PizzaD {
+  PizzaD remA() {
+    return remFn.forCrust();
+  }
+
+  PizzaD topAwC() {
+    return topAwCFn.forCrust();
+  }
+
+  PizzaD subAbC() {
+    return subAbC.forCrust();
+  }
+}
+
+class Cheese extends PizzaD {
+  PizzaD p;
+
+  Cheese(PizzaD _p) {
+    p = _p;
+  }
+  // -----------------------
+
+  PizzaD remA() {
+    return remFn.forCheese(p);
+  }
+
+  PizzaD topAwC() {
+    return topAwCFn.forCheese(p);
+  }
+
+  PizzaD subAbC() {
+    return subAbC.forCheese(p);
+  }
+}
+```
+The variants are totally mindless, now
+```java
+class Olive extends PizzaD {
+  PizzaD p;
+
+  Olive(PizzaD _p) {
+    p = _p;
+  }
+  // ------------------------
+
+  PizzaD remA() {
+    return remFn.forOlive(p);
+  }
+
+  PizzaD topAwC() {
+    return topAwCFn.forOlive(p);
+  }
+
+  PizzaD subAbC() {
+    return subAbC.forOlive(p);
+  }
+}
+
+class Anchovy extends PizzaD {
+  PizzaD p;
+
+  Anchovy(PizzaD _p) {
+    p = _p;
+  }
+  // -------------------------
+
+  PizzaD remA() {
+    return remFn.forAnchovy(p);
+  }
+
+  PizzaD topAwC() {
+    return topAwCFn.forAnchovy(p);
+  }
+
+  PizzaD subAbC() {
+    return subAbC.forAnchovy(p);
+  }
+}
+
+class Sausage extends PizzaD {
+  PizzaD p;
+
+  Sausage(PizzaD _p) {
+    p = _p;
+  }
+  // -----------------------
+
+  PizzaD remA() {
+    return remFn.forSausage(p);
+  }
+
+  PizzaD topAwC() {
+    return topAwCFn.forSausage(p);
+  }
+
+  PizzaD subAbC() {
+    return subAbC.forSausage(p);
+  }
+}
+
+class Spinach extends PizzaD {
+  PizzaD p;
+
+  Spinach(PizzaD _p) {
+    p = _p;
+  }
+  // ----------------------------
+
+  PizzaD remA() {
+    return remFn.forSpinach(p);
+  }
+
+  PizzaD topAwC() {
+    return topAwCFn.forSpinach(p);
+  }
+
+  PizzaD subAbC() {
+    return subAbC.forSpinach(p);
+  }
+}
+```
+
+### We are all set
+What about the visitors?
+
+### Okay, here is *RemAV*.
+```java
+class RemAv {
+  PizzaD forCrust() {
+    return new Crust();
+  }
+
+  PizzaD forCheese(PizzaD p) {
+    return new Cheese(p.topAwC())
+  };
+
+  PizzaD forOlive (Pizza D p) {
+    return new Olive(p.topAwC());
+  }
+
+  PizzaD forAnchovy(PizzaD p) {
+    return p.topAwC();
+  }
+
+  Pizza D forSausage(Pizza D p) {
+    return new Sausage(p.topAwC());
+  }
+}
+```
+### Define *TopAwCV*
+Easy!
+```java
+class TopAwCV {
+  PizzaD forCrust() {
+    return new Crust();
+  }
+
+  PizzaD forCheese(PizzaD p) {
+    return new Cheese(p.topAwC());
+  }
+
+  PizzaD forOlive(PizzaD p) {
+    return new Olive(p.topAwC());
+  }
+
+  PizzaD forAnchovy(PizzaD p) {
+    return new Cheese(new Anchovy(p.topAwC()));
+  }
+
+  PizzaD forSausage(PizzaD p) {
+    return new Sausage(p.topAwC());
+  }
+}
+```
+
+### This last one, *SubAbCV* is a piece of cake.
+Yep
+```java
+class SubAbCV {
+  PizzaD forCrust() {
+    return new Crust();
+  }
+
+  PizzaD forCheese(PizzaD p) {
+    return new Cheese(p.subAbC());
+  }
+
+  PizzaD forOlive(PizzaD p) {
+    return new Olive(p.subAbC());
+  }
+
+  PizzaD forAnchovy(PizzaD p) {
+    return new Cheese(p.subAbC());
+  }
+
+  PizzaD forSausage(PizzaD p) {
+    return new Sausage(p.subAbC());
+  }
+}
+```
+
+## Chapter 5
+
+### Have we seen this kind of definition before?
+```java
+// PizzaPieD
+abstract class PieD {}
+
+// Bottom
+class Bot extends PieD {}
+
+// Topping
+class Top extends PieD {
+  Object t;
+  PieD r;
+
+  Top(Object _t, PieD _r) {
+    t = _t;
+    r = _r;
+  }
+  // --------------------
+}
+```
+Yep
+
+### Yes, still more pizza, but this one is different
+Yes, it includes only one variant for adding toppings to a pizza, and toppings are *Object*s
+
+### What kind of toppings can we put on these kinds of pizza?
+Any kind we want because *Object* is the class of all objects. Here are some fish toppings
+```java
+abstract class FishD {}
+class Anchovy extends FishD {}
+class Salmon extends FishD {}
+class Tuna extends FishD {}
+```
+
+### Nice datatype. Is
+```java
+new Top(
+  new Anchovy(),
+  new Top(
+    new Tuna(),
+    new Top(
+      new Anchovy(),
+      new Bot())))
+```
+### a pizza pie?
+Yes
+
+### What is the value of
+```java
+new Top(
+  new Salmon(),
+  new Top(
+    new Anchovy(),
+    new Top(
+      new Tuna(),
+      new Top(
+        new Anchovy(),
+        new Bot()))))
+.remA()
+```
+It's this fishy pizza pie
+```java
+new Top(
+  new Salmon(),
+  new Top(
+    new Tuna(),
+    new Bot()))
+```
+
+### Is it true that the value of
+```java
+new Top(
+  new Salmon(),
+  new Top(
+    new Tuna(),
+    new Bot()))
+.remA()
+```
+### is
+```java
+new Top(
+  new Salmon(),
+    new Top(
+      new Tuna(),
+        new Bot()))
+```
+Yes because this pizza pie has no anchovies to remove
+
+### Does `remA` belong to *PieD*?
+Yes and it produces pizza pies.
+
+### Define the protocol for *RemAV*. We provide the abstract part
+```java
+// PieD
+RemAV raFn = new RemAV();
+
+abstract PieD remA();
+```
+It's easy by now
+```java
+// Bot
+PieD remA() {
+  return raFn.forBot();
+}
+
+// Top
+PieD remA() {
+  return raFn.forTop(t, r);
+}
+```
+
+### Great. Isn't that easy?
+Sure is
+
+### What part of this exercise differs from datatype to datatype?
+Determining how many fields a variant contains. In our case, we had zero and two.
+
+### Anything else?
+No, from that we know that `raFn.forBot` is followed by `()` and `raFn.forTop` by `(t,r)`.
+
+### Why `(t, r)`?
+Because those are the fields of *Top*
+
+### Let's define the visitor *RemAV*.
+```java
+class RemAV {
+  PieD forBot() {
+    return //____________
+  }
+
+  PieD forTop(Object t, PieD r) {
+    if (new Anchovy().equals(t)) {
+      return //___________
+    }
+    else return //____________
+  }
+}
+```
+```java
+class RemAV {
+  PieD forBot() {
+    return new Bot();
+  }
+
+  PieD forTop(Object t, PieD r) {
+    if (new Anchovy().equals(t)) {
+      return r.remA();
+    }
+    else return new Top(t, r.remA())
+  }
+}
+```
