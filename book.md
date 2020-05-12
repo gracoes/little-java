@@ -2880,3 +2880,1033 @@ class RemAV {
   }
 }
 ```
+
+### Great guesses! What does
+```java
+if (expr1)
+  return expr2;
+else
+  return expr3;
+```
+### mean?
+It means that when `expr1` is true we return `expr2`, otherwise we return `expr3`
+
+### And what does `new Anchovy().equals(t)` mean?
+It checks if `t` is equal to `new Anchovy`
+
+### Not yet. It depends on what `equals` means.
+What?
+
+### What is the value of `new Anchovy().equals(new Anchovy())`?
+The "Not yet" implies that the value is **false**
+
+### Yes! And what is the value of `new Anchovy().equals(new Tuna())`?
+Also **false**
+
+### The class *Object* contains a method called `equals`.
+### This method compares one *Object* to another, and it ahways returns **false**.
+### (Not always, we will see in chapter 10)
+If we know that `equal`s answer is always **false**, why bother to use it?
+
+### We must define it anew* for all classes whose instances we wish to compare.
+#### (In Java, redefining a method is called "overriding")
+Ok, how?
+
+### For *FishD* and its variants it works like this.
+```java
+abstract class FishD {}
+
+class Anchovy extends FishD {
+  public boolean equals(Object o) {
+    return (o instanceof Anchovy);
+  }
+}
+
+class Salmon extends FishD {
+  public boolean equals(Object o) {
+    return (o instanceof Salmon);
+  }
+}
+
+class Tuna extends FishD {
+  public boolean equals(Object o) {
+    return (o instanceof Tuna);
+  }
+}
+```
+Assuming that `(o instanceof Tuna)`
+is true when `o` is an instance of *Tuna*, these method definitions are obvious.
+
+### Aren't they? Is every value constructed with new an instance of *Object*?
+Yes, they are
+
+### If class *A* **extends** *B*, is every value created by `new A(... )` an instance of class *B*?
+Yes, every *A* is also a *B*
+
+### Now, what is the value of `new Anchovy().equals(new AnchovyO)`?
+It's **true**!
+
+### Yet the value of `new Anchovy().equals(new Tuna())` is still **false**.
+Yes, because `new Tuna` is not an instance of *Anchovy*
+
+### Could we have written *RemAV* without using `equals`?
+Yes, we could have used `instanceof`
+```java
+class RemAV {
+  PieD forBot() {
+    return new Bot();
+  }
+
+  PieD forTop(Object t, PieD r) {
+    if (t instanceof Anchovy) {
+      return r.remA();
+    }
+
+    else return new Top(t, r.remA());
+  }
+}
+```
+Why haven't we defined it this way?
+
+### Easy, because we want to generalize *RemAV* so that it works for any kind of fish topping.
+We can do that, but when we use the methods of the more general visitor,
+we need to say which kind of fish we want to remove.
+
+### What are good names for the more general methods and visitor?
+*RemFishV* for visitor and `remFish` for method
+
+### How do we use `remFish`?
+Like we use `remA` but it needs to consume a *FishD*
+
+### Add the protocol for *RemFishV*. We designed the abstract portion.
+```java
+// Bot
+PieD remFish(FishD f) {
+    return rfFn.forBot(f);
+}
+
+// Top
+PieD remFish(FishD f) {
+    return rfFn.forTop(f, t, r);
+}
+```
+
+### Where do `(f)` and `(t, r, f)` come from?
+`f` is the *FishD* we want to remove, `t` is the *Topping* and `r` is the rest of the pizza pie in *Top*
+
+### Let's define *RemFishV* and its two methods.
+```java
+class RemFishV {
+  PieD forBot(FishD f) {
+    return new Bot();
+  }
+
+  PieD forTop(Object t, PieD r, FishD f) {
+    if (f.equals(t)) {
+      return r.remFish(f)
+    }
+
+    else
+      return new Top(t, r.remFish(f))
+  }
+}
+```
+
+### If we add another kind of fish to our datatype, what would happen to the definition of *RemFishV*?
+It would stay the same, we just need to add `equals` to the new variant
+
+###  Let's try it out with a short example:
+```java
+new Top(new Anchovy(),new Bot()).remFish(new Anchovy())
+```
+The object is a topping, so we use `forTop` of *RemFishV*
+
+### Yes. What values does `forTop` consume?
+An *Object* `t` which is `new Anchovy()`, the rest of the pizza pie `r` which is `new Bot()`
+and a *FishD* to be removed, in this case `new Anchovy()`.
+
+### And now?
+Now we compare if `t` is equal to `f`
+
+### So?
+`t` and `f` are equal, since both are instances of *Anchovy* so we return `r.remFish(f)`
+
+### What is the value of `new Bot().remFish(new Anchovy())`?
+Since this is a bottom we use `forBot` of *RemFishV*
+
+### What does `forBot` in *RemFishV* produce?
+It always produces a `new Bot()`
+
+### All clear?
+Yep
+
+###  Does
+```java
+new Top(
+  new Integer(2),
+  new Top(
+    new Integer(3),
+    new Top(
+      new Integer(2),
+      new Bot())))
+remInt(new Integer(3))
+```
+### look familiar?
+Yes, it looks just like `remFish` but it consumes *Integer*s instead
+
+### What does `remInt` do?
+It removes from the pizza pie all the *Integer*s that are equal to the one it receives
+
+### Who defined `equals` for *Integer*?
+The Machine decided `new Integer(0).equas(new Integer(O)) to be true, and the rest was obvious.
+
+### Define the visitor *RemIntV*.
+```java
+class RemIntV {
+  PieD forBot(Integer i) {
+    return new Bot();
+  }
+
+  PieD forTop(Object t, PieD r, Integer i) {
+    if (i.equals(t)) {
+      return r.remInt(i);
+    }
+
+    else
+      return new Top(t, r.remInt(i));
+  }
+}
+```
+
+### Does it matter that this definition uses `i` and not `f`?
+The name is not really importante, what is important is the type
+
+### Where is the protocol?
+It's so simple, let's save it for later
+
+### Can we remove *Integers* from *PieD*s?
+Sure with the *RemIntV* visitor
+
+### Can we remove *FishD* from *PieD*s?
+Yes, we just saw that
+
+### Let's combine the two definitions.
+If we use *Object* instead of Integer above, everything works out.
+
+### Why?
+Because every object is an instance of *Object* and thus has the `equals` method
+
+### Just do it!
+```java
+class RemV {
+  PieD forBot(Object i) {
+    return new Bot();
+  }
+
+  PieD forTop(Object t, PieD r, Object o) {
+    if (o.equals(t)) {
+      return r.rem(o);
+    }
+
+    else
+      return new Top(t, r.rem(o));
+  }
+}
+```
+
+### Should we do the protocol for all these visitors?
+Now?
+
+### You never know when it might be useful, even if it does not contain any interesting information.
+Let's just consider *RemV*.
+
+### Why not *RemFishV* and *RemAV* and *RemIntV*?
+Because those are just variants of *RemV*
+
+###  Here is the abstract portion of *PieD*.
+```java
+abstract class PieD {
+  RemV remFn = new RemV());
+
+  abstract PieD rem(Object o);
+```
+```java
+// Bot
+PieD rem(Object o) {
+    return remFn.forBot(o);
+}
+
+// Top
+PieD rem(Object o) {
+    return remFn.forTop(t, r, o);
+}
+```
+
+### Let's remove some things from pizza pies:
+```java
+new Top(
+  new Integer(2),
+  new Top(
+    new Integer(3),
+    new Top(
+      new Integer(2),
+      new Bot())))
+.rem(new Integer(3))
+```
+It produces
+```java
+new Top(
+  new Integer(2),
+  new Top(
+    new Integer(2),
+    new Bot()))
+```
+
+### And how about
+```java
+new Top(
+  new Anchovy(),
+  new Bot())
+.rem(new Anchovy())
+```
+It returns `new Bot()` just like before
+
+### Next
+```java
+new Top(
+  new Anchovy(),
+  new Top(
+    new Integer(3),
+    new Top(
+      new Zero(),
+      new Bot())))
+.rem(new Integer(3))
+```
+Returns
+```java
+new Top(
+  new Anchovy(),
+  new Top(
+    new Zero(),
+    new Bot()))
+```
+
+### What is the value of
+```java
+new Top(
+  new Anchovy(),
+  new Top(
+    new Integer(3),
+    new Top(
+      new Zero(),
+      new Bot())))
+.rem(new Zero())
+```
+It returns the same pizza pie!
+
+### What's wrong with that?
+It should've removed the *Zero*
+
+### And why didn't it?
+Because we didn't redefine the `equals` of *Zero* so it uses the one of *Object* which always returns **false**
+
+### Always?
+Unless we redefine it for the classes we wish to compare
+
+### Here is the version of *NumD* (including *OneMoreThan*) with its own `equals`. Define the new *Zero* variant.
+```java
+abstract class NumD {}
+
+class OneMoreThan extends NumD {
+  NumD predecessor;
+
+  OneMoreThan(NumD _p) {
+    predecessor = _p;
+  }
+
+  public boolean equals(Object o) {
+    if (o instanceof NumD) {
+      return predecessor.equals(((OneMoreThan) o).predecessor);
+    }
+
+    else
+      return false;
+  }
+}
+```
+```java
+class Zero extends NumD {
+  public boolean equals(Object o) {
+    return (o instanceof Zero);
+  }
+}
+```
+But what is `((OneMoreThan)o)` about? Wouldn't it have been sufficient to write `o.predecessor`?
+
+### No. What is the type of `o`?
+*Object*
+
+### So what is `o.predecessor`?
+It's nonsense
+
+### Correct. What do we know after **if** has determined that `(o instanceof OneMoreThan)` is true?
+We know that `o` is also an instance of *OneMoreThan*
+
+### Precisely. So what does `((OneMoreThan) o) do`
+It converts the type of `o` from *Object* to *OneMoreThan*
+
+### What is `((OneMoreThan) o)` type?
+It's *OneMoreThan*
+
+### Are `o` and `((OneMoreThan) o)` interchangeable?
+No, `o` is an *Object* and `((OneMoreThan) o)` is an *OneMoreThan*
+
+### Is this complicated?
+Someone has been drinking too much coffee
+
+### Did you also notice the
+```java
+predecessor.equals(((OneMoreThan) o).predecessor);
+```
+### in `equals` for *OneMoreThan*?
+How do the two uses of `predecessor` differ?
+
+### The first one, `predecessor` refers to the `predecessor` field of the instance of *OneMoreThan* on
+### which we are using `equals`.
+### And that field might not be a *OneMoreThan*
+So the second one, `((OneMoreThan) o).predecessor` refers to the `predecessor` field of the instance of *OneMoreThan*
+consumed by `equals`
+
+### Yes. Are these two objects equal?
+Yes, if their `predecessor`s are equal
+
+### Now what is the value of
+```java
+new Top(
+  new Anchovy(),
+  new Top(
+    new Integer(3),
+    new Top(
+      new Zero(),
+      new Bot())))
+.rem(new Zero())
+```
+Now it's
+```java
+new Top(
+  new Anchovy(),
+  new Top(
+    new Integer(3),
+    new Bot()))
+```
+
+### And why?
+Because `equals` now knows how to compara *NumD*s
+
+### Do we always add `equals` to a class?
+Only if we need it
+
+### Do we need `equals` when we want to substitute one item for another on a pizza pie?
+Yes, we do
+
+### What is the value of
+```java
+new Top(
+  new Anchovy(),
+  new Top(
+    new Tuna(),
+    new Top(
+      new Anchovy(),
+      new Bot())))
+.substFish(new Salmon(), new Anchovy())
+```
+It's
+```java
+new Top(
+  new Salmon(),
+  new Top(
+    new Tuna(),
+    new Top(
+      new Salmon(),
+      new Bot())))
+```
+
+### What kind of values does `substFish` consume?
+Two *FishD* and produces a *PieD*
+
+### And what does it produce?
+A *PieD*
+
+### What. is the value of
+```java
+new Top(
+  new Integer(3),
+  new Top(
+    new Integer(2),
+    new Top(
+      new Integer(3),
+      new Bot())))
+.substInt(new Integer(5), new Integer(3))
+```
+The same pizza pie with the *Integer* 5 instead of the *Integer* 3
+```java
+new Top(
+  new Integer(5),
+  new Top(
+    new Integer(2),
+    new Top(
+      new Integer(5),
+      new Bot())))
+```
+
+### What kind of values does `substInt` consume?
+Two *Integer*s
+
+### And what does it produce?
+A *PieD*
+
+### We can define *SubstFishV*.
+```java
+class SubstFishV {
+  PieD forBot(FishD f) {
+    return new Bot();
+  }
+
+  PieD forTop(Object t, PieD r, FishD n, FishD o) {
+    if (o.equals(t)) {
+      return new Top(n, r.substFish(n, o));
+    }
+
+    else
+      return new Top(t, r.substFish(n, o));
+  }
+}
+```
+### Define *SubstIntV*
+```java
+class SubstIntV {
+  PieD forBot(Integer i) {
+    return new Bot();
+  }
+
+  PieD forTop(Object t, PieD r, Integer n, Integer o) {
+    if (o.equals(t)) {
+      return new Top(n, r.substInt(n, o));
+    }
+
+    else
+      return new Top(t, r.substInt(n, o));
+  }
+}
+```
+
+### Did we forget the boring parts?
+Yes, because there is obviously a more general version like *RemV*
+
+### Yes, we call it *SubstV. Define it.
+```java
+class SubstV {
+  PieD forBot(Object i) {
+    return new Bot();
+  }
+
+  PieD forTop(Object t, PieD r, Object n, Object o) {
+    if (o.equals(t)) {
+      return new Top(n, r.subst(n, o));
+    }
+
+    else
+      return new Top(t, r.subst(n, o));
+  }
+}
+```
+
+### Now it is time to add the protocol for *SubstV* to *PieD*. Here are the variants.
+```java
+// Bot
+PieD subst(Object n, Object o) {
+  return substFn.forBot(n, o)
+}
+
+// Top
+PieD subst(Object n, Object o) {
+  return substFn.forTop(t, r, n, o);
+}
+```
+Here is *PieD*
+```java
+// PieD
+SubstV substFn = new SubstV();
+abstract PieD subst(Object n, Object o);
+```
+
+### So?
+That was some heavy lifting
+
+## Chapter 6
+
+### Are protocols truly boring?
+We acted as if they were
+
+### But, of course they are not. We just didn't want to spend much time on them.
+### Let's take a closer look at the last one we defined in the previous chapter.
+```java
+abstract class PieD {
+  RemV remFn = new RemV();
+  SubstV substFn = new SubstV();
+
+  abstract PieD rem(Object o);
+  abstract PieD subst(Object n, Object o);
+}
+```
+And here are the variants
+```java
+// Bot
+PieD rem(Object o) {
+  return remFn.forBot(o);
+}
+
+PieD subst(Object n, Object o) {
+  return substFn.forBot(n, o);
+}
+
+// Top
+PieD rem(Object o) {
+  return remFn.forTop(t, r, o);
+}
+
+PieD subst(Object n, Object o) {
+  return substFn.forTop(t, r, n, o);
+}
+```
+
+### What is the difference between `rem` and `subst` in *PieD*?
+The number of *Object*s they consume
+
+### What is the difference between `rem` and `subst` in the *Bot* variant?
+Simple: `rem` asks for the `forBot` service from `remFn` and hands over the *Object* it consumes;
+`subst` asks for the `forBot` service from `substFn` and hands over the two *Object*s it consumes.
+
+### What is the difference between `rem` and `subst` in the *Top* variant?
+`rem` asks for the `forTop` service from `remFn` and hands over the three *Object*s it consumes;
+`subst` asks for the `forTop` service from `substFn` and hands over the four *Object*s it consumes.
+
+### And that is all there is to the methods in the variants of a protocol.
+But `remFn` and `substFn` defined in the datatype are still a bit mysterious.
+
+### Let's not create `remFn` and `substFn` in the datatype.
+```java
+abstract class PieD {
+  abstract PieD rem(RemV remFn, Object o);
+  abstract PieD subst(SusbtV substFn, Object n, Object o);
+}
+```
+This looks like an obvious modification.
+The new `rem` and `subst` now consume a `remFn` and a `substFn`, respcctively.
+Can they still find `forBot` and `forTop`, their corresponding carousel partners?
+
+### Yes, it is a straightforward trade-off.
+### Instead of adding a `remFn` field and a `substFn` field to the datatype,
+### we now have `rem` or `subst` consume such values.
+### What kind of values are consumed by `rem` and `subst`?
+`rem` and `subst` now consume *RemV* for `rem` and *SubstV* for `subst` in adition to *Object*
+
+### Here is how it changes *Top*
+```java
+class Top extends PieD {
+  Object t;
+  PieD r;
+
+  Top(Object _t, PieD _r) {
+    t = _t;
+    r = _r;
+  }
+
+  PieD rem(RemV remFn, Object o) {
+    return remFn.forTop(t, r, o);
+  }
+
+  PieD subst(SubstV substFn, Object n, Object o) {
+    return substFn.forTop(t, r, n, o);
+  }
+}
+```
+### How does it affect *Bot*?
+It goes like this
+```java
+class Bot extends PieD {
+  PieD rem(RemV remFn, Object o) {
+    return remFn.forBot(o);
+  }
+
+  PieD subst(SubstV susbstFn, Object n, Object o) {
+    return substFn.forBot(n, o);
+  }
+}
+```
+
+### That's right. Nothing else changes in the variants.
+### Instead of relying on fields of the datatype, we use what is consumed.
+We still have some work to do
+
+### Like what?
+Consuming an extra value here also affects how the methods `rem` and `subst` are used.
+
+### Where are they used?
+In *RemV* and *SubstV*
+
+### Yes. Here is *RemV*.
+```java
+class RemV {
+  PieD forBot(Object i) {
+    return new Bot();
+  }
+
+  PieD forTop(Object t, PieD r, Object o) {
+    if (o.equals(t)) {
+      return r.rem(this, o);
+    }
+
+    else
+      return new Top(t, r.rem(this, o));
+  }
+}
+```
+### Modify *SubstV* accordingly
+```java
+class SubstV {
+  PieD forBot(Object n, Object o) {
+    return new Bot();
+  }
+
+  PieD forTop(Object t, PieD r, Object n, Object old) {
+    if (old.equals(t)) {
+      return new Top(n, r.subst(this, n, old));
+    }
+
+    else
+      return new Top(t, r.subst(this, n, old));
+  }
+}
+```
+
+### What is **this** all about?
+Yes, what about it. Copying is easy.
+
+### Understanding is more difficult. The word **this** refers to the object itself.
+Which object?
+
+### How did we get here?
+By calling *SubstV* and *RemV* `forTop` and `forBot`
+
+### How does that happen?
+It happens with `remFn.forTop(...)`, `remFn.forBot(...)`, `substFn.forTop(...)` and `substFn.forBot(...)`
+
+### Correct. And now `forBot` and `forTop` can refer to the object `remFn` as **this**.
+Oh. so inside the methods of *RemV* **this** stands for precisely that instance of *RemV* that allowed us to use
+those methods in the first place. And that must mean that when we use `r.rem(this,... )` in `forTop`, it tells
+`rem` to use the same instance over again.
+
+### That's it. Tricky?
+Not really, just self-referential.
+
+### Why?
+Because **this** is a *RemV* and it is exactly what we need to complete the job.
+
+### What is the value of
+```java
+new Top(
+  new Anchovy(),
+  new Top(
+    new Integer(3),
+    new Top(
+      new Zero(),
+      new Bot())))
+.rem(new RemV(), new Zero());
+```
+It's the same pizza pie with the *Zero*s removed
+```java
+new Top(
+  new Anchovy(),
+  new Top(
+    new Integer(3),
+    new Bot()))
+```
+
+### And how does the `new Rem()` part relate to what we did there?
+`new Rem()` creates the *RemV* service that `rem` needs to consume
+
+### What is the value of
+```java
+new Top(
+  new Integer(3),
+  new Top(
+    new Integer(2),
+    new Top(
+      new Integer(3),
+      new Bot())))
+.subst(new SubstV(), new Integer(5), new Integer(3))
+```
+It's the same result of the previous chapter
+
+### And how does the `new SubstV()` part relate to what we did there?
+`new SubstV()` creates the *SubstV* service that `subst` needs to consume
+
+### Take a look at `subst` in *Top* and at `forTop` in *SubstV*. What happens to the values that they consume?
+The `subst` on *Top* just passes the values to `forTop` in *SubstV* and `forTop` calls `subst` again after
+comparing `o` and `t`
+
+### Is the handing back and forth necessary?
+We don't know a better way yet
+
+### Here is a way to define *SubstV* that avoids the handing back and forth of these extra values.
+```java
+class SubstV {
+  Object n;
+  Object o;
+
+  SubstV(Object _n, Object _o) {
+    n = _n;
+    o = _o;
+  }
+
+  PieD forBot(Object n, Object o) {
+    return new Bot();
+  }
+
+  PieD forTop(Object t, PieD r, Object n, Object old) {
+    if (old.equals(t)) {
+      return new Top(n, r.subst(this));
+    }
+
+    else
+      return new Top(t, r.subst(this));
+  }
+}
+```
+Wow. This visitor has two fields.
+(In functional programming, a visitor with fields is called a closure (or a higher-order function), which would
+be the result of applying a curried version of `subst`.)
+
+### How do we create a *SubstV*?
+By passing to `new SubstV(...)` two *Object*s, `n` and `o`
+
+### What does that do?
+It creates a *SubstV* whose methods know how to substitute `n` for all occurrences of `o` in *PieD*.
+
+### How do the methods know that without consuming more values"?
+The values are now fields of *SubstV* that the methods can access
+
+### Okay, so how would we substitute all `new Integer(3)` with `new Integer(5)` in
+```java
+new Top(
+  new Integer(3),
+  new Top(
+    new Integer(2),
+    new Top(
+      new Integer(3),
+      new Bot())))
+```
+By calling the `subst` method of this object and passing it an instance of *SubstV* constructed with
+the values `new Integer(5)` and `new Integer(3)` like
+```java
+new Top(
+  new Integer(3),
+  new Top(
+    new Integer(2),
+    new Top(
+      new Integer(3),
+      new Bot())))
+.subst(
+  new SubstV(
+    new Integer(5),
+    new Integer(3)))
+```
+
+### And if we want to substitute all `new Integer(2)` with `new Integer(7)` in the same pie?
+We do the same thing except creating *SubstV* like `new SubstV(new Integer(7), new Integer(2))`
+
+### Does all that mean we have to change the protocol, too?
+Yes we need to change `subst` in *PieD*
+
+### That's right. Here are the datatype and its *Bot* variant. Define the *Top* variant.
+```java
+abstract class PieD {
+  abstract PieD rem(RemV remFn);
+  abstract PieD subst(SubstV substFn);
+}
+
+class Bot extends PieD {
+  PieD rem(RemV remFn) {
+    return remFn.forBot());
+  }
+
+  PieD subst(SubstV susbstFn) {
+    return substFn.forBot();
+  }
+}
+```
+Easy
+```java
+class Top extends PieD {
+  Object t;
+  PieD r;
+
+  Top(Object _t, PieD _r) {
+    t = _t;
+    r = _r;
+  }
+
+  PieD rem(RemV remFn) {
+    return remFn.forTop(t, r);
+  }
+
+  PieD subst(SubstV substFn) {
+    return substFn.forTop(t, r);
+  }
+}
+```
+
+### Is there anything else missing?
+We need to also change *RemV*
+
+### What is the difference between `rem` and `subst` in *Bot*?
+Only the type of the value they consume
+
+### What is the difference between `rem` and `subst` in *Top*?
+Only the type of the value they consume
+
+### Can we eliminate the differences?
+Only if we can use a value of the same type for both
+
+### But how can we make the types the same?
+Both *RemV* and *SubstV* are visitors that contain the same method names and those methods consume and produce
+the same types of values. We can think of them as extensions of a common **abstract** class
+
+### Yes! Do it!
+```java
+abstract class PieVisitorD {
+  abstract PieD forBot();
+  abstract PieD forTop(Object t, PieD r);
+}
+```
+
+### Great job, except that we will use **interface** for specifying visitors like these.
+```java
+interface PieVisitorI {
+  PieD forBot();
+  PieD forTop(Object t, PieD r);
+}
+```
+
+Okay, that doesn't seem to be a great difference.
+Can a class extend an **interface** the way it **extends** an **abstract** class?
+
+### No. A class **implements** an interface; it does not extend it
+Fine
+
+### Now that we have an interface that describes the type of the values consumed by `rem` and `subst`,
+### can we make their definitions even more similar'?
+Yes we can say they both consume a *PieVisitorI* like this
+```java
+PieD rem(PieVisitorI pvFn) {
+    return pvFn.forTop(t, r);
+}
+
+PieD subst(PieVisitorI pvFn) {
+  return pvFn.forTop(t, r);
+}
+```
+in the case of *Top*
+
+### Correct. What is the difference between `rem` and `subst`, now?
+Only the name, so we can join them if we find a good name for both
+
+### What is a good name for this method?
+The method accepts a visitor and asks for its services, so we call it `accept`.
+
+### And what is a better name for pvFn?
+Easy: `ask`, because we ask for services
+
+### Now we can simplify the protocol. Here is the new *RemV*.
+```java
+class RemV implements PieVisitorI {
+  public PieD forBot() {
+    return new Bot();
+  }
+
+  public PieD forTop(Object t, PieD r) {
+    if (o.equals(t)) {
+      return r.accept(this, o);
+    }
+
+    else
+      return new Top(t, r.accept(this, o));
+  }
+}
+```
+### Supply the protocol
+```java
+abstract class PieD {
+  abstract PieD accept(PieVisitorI ask);
+}
+
+class Bot extends PieD {
+  PieD accept(PieVisitorI ask) {
+    return ask.forBot();
+  }
+}
+
+class Top extends PieD {
+  Object t;
+  PieD r;
+
+  Top(Object _t, PieD _r) {
+    t = _t;
+    r = _r;
+  }
+
+  PieD accept(PieVisitorI ask) {
+    return ask.forTop(t, r);
+  }
+}
+```
+
+### Did you notice the two occurrences of **public**?
+Yes, what about them?
+
+### When we define a **class** that **implements** an **interface**,
+### we need to add the word **public** to the left of the method definitions
+Why?
+
+### It's a way to say that these are the methods that stafisfy the obligations imposed by the **interface**
+Looks weird, but let's move on
+
+### Correct. They are just icing
+Okay, we still won't forget them
+
+### Now define the new *SubstV*.
+```java
+class SubstV implements PieVisitorI {
+  Object n;
+  Object o;
+
+  SubstV(Object _n, Object _o) {
+    n = _n;
+    o = _o;
+  }
+
+  public PieD forBot() {
+    return new Bot();
+  }
+
+  public PieD forTop(Object t, PieD r) {
+    if (old.equals(t)) {
+      return new Top(n, r.accept(this));
+    }
+
+    else
+      return new Top(t, r.accept(this));
+  }
+}
+```
