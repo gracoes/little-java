@@ -3901,7 +3901,7 @@ class SubstV implements PieVisitorI {
   }
 
   public PieD forTop(Object t, PieD r) {
-    if (old.equals(t)) {
+    if (o.equals(t)) {
       return new Top(n, r.accept(this));
     }
 
@@ -3910,3 +3910,1044 @@ class SubstV implements PieVisitorI {
   }
 }
 ```
+
+### Draw a picture of the interface *PieVisitorI* and all the classes: *PieD*, *Bot*, *Top*, *RemV*, and *SubstV*
+```
+     ---------------                                      ----------------
+     |     PieD    | ----------------accept---------------|  PieVisitorI |
+     ---------------                                      ----------------
+        ^        ^                                            /         \
+       /         |                                           /           \
+      /          |                                          /             \
+  ---------    -------                                    ---------      ----------
+   | Bot  |    | Top |                                    |  RemV |      | SubstV |
+  ---------    -------                                    ---------      ----------
+```
+
+### Why is there a line, not an arrow, from *SubstV* to *PieVisitorI*
+The *SubstV* visitor **implements** *PieVisitorI*, it doesn't extend it.
+Arrows mean "extends," lines mean "implements."
+
+### And the line from *PieD* to *PieVisitorI*
+It tells us the name of the method that connects the datatype to the visitors.
+
+### What is the value of
+```java
+new Top(
+  new Anchovy(),
+  new Top(
+      new Tuna(),
+      new Top(
+        new Anchovy(),
+        new Top(
+          new Tuna(),
+          new Top(
+            new Anchovy(),
+            new Bot()))))))
+.accept(
+  new LtdSubstV(2, new Salmon(), new Anchovy()))
+```
+It's
+```java
+new Top(
+  new Salmon(),
+  new Top(
+      new Tuna(),
+      new Top(
+        new Salmon(),
+        new Top(
+          new Tuna(),
+          new Top(
+            new Anchovy(),
+            new Bot()))))))
+```
+
+### Explain what *LtdSubstV* produces
+#### *LtdSubstV* means LimitedSubstitutionV
+*LtdSubstV* produces a new pizza pie by substituting a topping for another topping the amount of times specified
+in the construction of *LtdSubstV*
+
+### Good. Define *LtdSubstV*
+```java
+class LtdSubstV implements PieVisitorI {
+  int c;
+  Object n;
+  Object o;
+
+  LtdSubstV(int _c, Object _n, Object _o) {
+    c = _c;
+    n = _n;
+    o = _o;
+  }
+
+  public PieD forBot() {
+    return new Bot();
+  }
+
+  public PieD forTop(Object t, PieD r) {
+    if (c == 0) {
+      return new Top(t, r);
+    }
+
+    if (o.equals(t)) {
+      return new Top(n, r.accept(this));
+    }
+
+    else
+      return new Top(t, r.accept(this));
+  }
+}
+```
+
+### What is the value of
+```java
+new Top(
+  new Anchovy(),
+  new Top(
+      new Tuna(),
+      new Top(
+        new Anchovy(),
+        new Top(
+          new Tuna(),
+          new Top(
+            new Anchovy(),
+            new Bot()))))))
+.accept(
+  new LtdSubstV(2, new Salmon(), new Anchovy())
+```
+Oh, oh, something went wrong the result is
+```java
+new Top(
+  new Salmon(),
+  new Top(
+      new Tuna(),
+      new Top(
+        new Salmon(),
+        new Top(
+          new Tuna(),
+          new Top(
+            new Salmon(),
+            new Bot()))))))
+```
+
+### How come?
+We are not decreasing `c` in *LtdSubstV*
+
+### Why doesn't `c` ever change?
+Because we are always using the same **this**, the same *LtdSubstV*
+
+### Can we fix **this**?
+Sure, we can create a new *LtdSubstV*
+
+### If `c` stands for the current count, how do we create a *LtdSubstV* that shows
+### that we have just substituted one fish by another.
+Like this `new LtdSubstV(c - 1, n, o)`
+
+### Define the new and improved version of *LtdSubstV*.
+```java
+class LtdSubstV implements PieVisitorI {
+  int c;
+  Object n;
+  Object o;
+
+  LtdSubstV(int _c, Object _n, Object _o) {
+    c = _c;
+    n = _n;
+    o = _o;
+  }
+
+  public PieD forBot() {
+    return new Bot();
+  }
+
+  public PieD forTop(Object t, PieD r) {
+    if (c == 0) {
+      return new Top(t, r);
+    }
+
+    if (o.equals(t)) {
+      return new Top(n, r.accept(new SubstV(c - 1, n, o)));
+    }
+
+    else
+      return new Top(t, r.accept(this));
+  }
+}
+```
+
+### How does **this** differ from `new LtdSubstV(c - 1,n,o)`?
+**this** referers to the current instance of *LtdSubstV* and `new LtdSubstV(c - 1,n,o)` is a new instance of
+*LtdSubstV* with the same `n` and `o` but one less `c`
+
+### How do you feel about protocols now?
+Less boring
+
+## Chapter 7
+
+### Is
+```java
+new Flat(
+  new Apple(),
+  new Flat(
+    new Peach(),
+    new Bud()))
+```
+### a flat *TreeD*?
+Sure
+
+### Is
+```java
+new Flat(
+  new Pear(),
+  new Bud())
+```
+### a flat *TreeD*?
+Yes
+
+### And how about
+```java
+new Split(
+  new Bud(),
+  new Flat(
+    new Fig(),
+    new Split(
+      new Bud(),
+      new Bud())))
+```
+Don't think so, it is split so it can't be flat
+
+### Here is one more example
+```java
+new Split(
+  new Split(
+    new Bud(),
+    new Flat(
+      new Lemon(),
+      new Bud())),
+  new Flat(
+    new Fig(),
+    new Split(
+      new Bud(),
+      new Bud())))
+```
+### Is it flat?
+No, it is split
+
+### Is the difference between flat trees and split trees obvious now?
+Unless there is anything else to *TreeD*, it's totally clear.
+
+### Good. Then let's move on
+Ok.
+
+### Here are some fruits.
+```java
+abstract class FruitD {}
+
+class Peach extends FruitD {
+  public boolean equals(Object o) {
+    return (o instanceof Peach);
+  }
+}
+
+class Apple extends FruitD {
+  public boolean equals (Object o) {
+    return (o instanceof Apple);
+  }
+}
+
+class Pear extends FruitD {
+  public boolean equals(Object o) {
+    return (o instanceof Pear);
+  }
+}
+
+class Lemon extends FruitD {
+  public boolean equals(Object o) {
+    return (0 instanceof Lemon);
+  }
+}
+
+class Fig extends FruitD {
+  public boolean equals(Object o) {
+    return (o instanceof Fig);
+  }
+}
+```
+### Lets say all *TreeD* are either flat, split or bud. Formulate a rigourous description for *TreeD*s
+```java
+abstract class TreeD {}
+
+class Bud extends TreeD {}
+
+class Split extends TreeD {
+  TreeD l;
+  TreeD r;
+
+  Split(TreeD _l, TreeD _r) {
+    l = _l;
+    r = _r;
+  }
+}
+
+class Flat extends TreeD {
+  FruitD f;
+  TreeD t;
+
+  Flat(FruitD _f, TreeD _t) {
+    f = _f;
+    t = _t;
+  }
+}
+```
+
+### Did you notice that we have redefined the method `equals` in the variants of *FruitD*?
+That probably means we will need to compare them
+
+### Do *TreeD*'s variants contain `equals`?
+No, so we'll probably won't need to compare them
+
+### How does the datatype *TreeD* differ from all the other datatypes we have seen before?
+The name of the new datatype occurs twice in its *Split* variant.
+
+### Let's add a visitor interface whose methods produce **booleans**.
+```java
+interface bTreeVisitorI {
+  boolean forBud();
+  boolean forFlat(FruitD f, TreeD t);
+  boolean forSplit(TreeD l, TreeD r);
+}
+```
+### Here is the new datatype definition
+```java
+abstract class TreeD {
+  abstract boolean accept(bTreeVisitorI ask);
+}
+```
+### Revise the variants
+Here we go
+```java
+// Bud
+boolean accept(bTreeVisitorI ask) {
+  return ask.forBud();
+}
+
+// Split
+boolean accept(bTreeVisitorI ask) {
+  return ask.forSplit(l, r);
+}
+
+// Flat
+boolean accept(bTreeVisitorI ask) {
+  return ask.forFlat(f, t);
+}
+```
+But isn't *bTreeVisitorI* a pretty unusual name?
+
+### Yes, it is. Hang in there, we need unusual names for unusual interfaces.
+### Here *b* reminds us that the visitor's methods produce **boolean**s.
+Ah, ok
+
+### How many methods does the definition of *blsFlatV* contain, assuming it implements *bTreeVisitorI*?
+Three methods
+
+### Vhat type of values do the methods of *blsFlatV* produce?
+Since it implements *bTreeVisitorI* it produces **boolean**s
+
+### What visitor does *blsFlatV* remind us of?
+*OnlyOnionsV*
+
+### Here is a skeleton for *blsFlatV*.
+```java
+class blsFlatV implements bTreeVisitorI {
+  public boolean forBud() {
+    return //...
+  }
+
+  public boolean forFlat(FruitD f, TreeD t) {
+    return //...
+  }
+
+  public boolean forSplit(TreeD l, TreeD r) {
+    return //...
+  }
+}
+```
+### Fill in the blanks
+```java
+class blsFlatV implements bTreeVisitorI {
+  public boolean forBud() {
+    return true;
+  }
+
+  public boolean forFlat(FruitD f, TreeD t) {
+    return t.accept(this);
+  }
+
+  public boolean forSplit(TreeD l, TreeD r) {
+    return false;
+  }
+}
+```
+
+### Define the *blsSplitV* visitor, whose methods check whether a *TreeD* is constructed with *Split* and *Bud* only.
+```java
+class blsSplitV implements bTreeVisitorI {
+  public boolean forBud() {
+    return true;
+  }
+
+  public boolean forFlat(FruitD f, TreeD t) {
+    return false;
+  }
+
+  public boolean forSplit(TreeD l, TreeD r) {
+    return l.accept(this) && r.accept(this);
+  }
+}
+```
+
+### Give an example of a *TreeD* for which the methods of *blsSplitV* respond with **true**.
+Something like
+```java
+new Split(
+  new Bud(),
+  new Bud())
+```
+
+### How about one with five uses of *Split*?
+```java
+new Split(
+  new Split(
+    new Split(
+      new Bud(),
+      new Bud()),
+    new Split(
+      new Split(
+        new Bud(),
+        new Bud()))),
+  new Bud())
+```
+
+### Does this *TreeD* have any fruit?
+Nope
+
+### Define the *bHasFruitV* visitor.
+```java
+class bHasFruitV implements bTreeVisitorI {
+  public boolean forBud() {
+    return false;
+  }
+
+  public boolean forFlat(FruitD f, TreeD t) {
+    return true;
+  }
+
+  public boolean forSplit(TreeD l, TreeD r) {
+    return l.accept(this) || l.accept(this);
+  }
+}
+```
+
+###  What is the height of
+```java
+new Split(
+  new Split(
+    new Bud(),
+    new Flat(
+      new Lemon(),
+      new Bud())),
+  new Flat(
+    new Fig(),
+    new Split(
+      new Bud(),
+      new Bud())))
+```
+It's 3
+
+###  What is the height of
+```java
+new Split(
+  new Bud(),
+  new Flat(
+    new Lemon(),
+    new Bud()))
+```
+It's 2
+
+###  What is the height of
+```java
+new Flat(
+  new Lemon(),
+  new Bud())
+```
+It's 1
+
+###  What is the height of
+```java
+new Bud()
+```
+It's 0
+
+### So what is the height of a *TreeD*?
+Just as in nature, the height of a tree is the distance from the beginning to the highest bud in the tree.
+
+### Do the methods of *iHeightV* work on a *TreeD*?
+Yes and they produce an **int**
+
+### Is that what the *i* in front of *Height* is all about*
+You bet
+
+### What is the value of
+```java
+new Split(
+  new Split(
+    new Bud(),
+    new Bud()),
+  new Flat(
+    new Fig(),
+    new Flat(
+      new Lemon(),
+      new Flat(
+        new Apple(),
+        new Bud()))))
+.accept(new iHeightV())
+```
+It's 4
+
+### Why is the height *4*?
+Because the value of
+```java
+new Split(
+    new Bud(),
+    new Bud())
+.accept(new iHeigthV())
+```
+is 1
+and the value of
+```java
+new Flat(
+    new Fig(),
+    new Flat(
+      new Lemon(),
+      new Flat(
+        new Apple(),
+        new Bud())))
+.accept(new iHeightv())
+```
+is 3, so we chose the largest number which is 3
+
+### And how do we get from 3 to 4?
+Because we still need to count the distance to the first *Split*
+
+### `Math.max(x, y)` picks the larger of two numbers, `x` and `y`.
+That's nice. What kind of methods does *iHeightV* define?
+
+### *iHeightV*s methods measure the heights of the *TreeD*s to which they correspond
+Now, that's a problem
+
+### Why?
+We defined only **interface**s that produce **boolean**s in this chapter.
+
+### So what?
+The methods of *iHeightV* produce **int**s, which are not **boolean**s
+
+### Okay, so let's define a visitor interface that produces *int*s
+```java
+interface iTreeVisitorI {
+  int forBud();
+  int forFlat(FruitD f, TreeD t);
+  int forSplit(TreeD l, TreeD r);
+}
+```
+
+### Yes, and once we have that we can add another `accept` method to *TreeD*.
+```java
+abstract class TreeD {
+  abstract boolean accept(bTreeVisitorI ask);
+  abstract int accept(iTreeVisitorI ask);
+}
+```
+Does that mean we can have two methods with the same name in one class?
+(This is called "overloading")
+
+### We can have two methods with the same name in the same class as long as the types of the things they consume differ.
+*bTreeVisitorI* is indeed different from *iTreeVisitorI* , so we can have two versions of `accept` in *TreeD*.
+
+### Add the new `accept` methods to *TreeD*s variants. Start with the easy one
+Easy
+```java
+class Bud extends TreeD {
+  boolean accept(bTreeVisitorI ask) {
+    return ask.forBud();
+  }
+
+  int accept(iTreeVisitorI ask) {
+    return ask.forBud();
+  }
+}
+```
+
+###  The others are easy, too. We duplicate `accept`.
+```java
+class Flat extends TreeD {
+  FruitD f;
+  TreeD t;
+
+  Flat(FruitD _f, TreeD _t) {
+    f = _f;
+    t = _t;
+  }
+
+  boolean accept(bTreeVisitorI ask) {
+    return ask.forFlat(f, t);
+  }
+
+  int accept(iTreeVisitorI ask) {
+    return ask.forFlat(f, t);
+  }
+}
+```
+Yeah, this is easy
+```java
+class Split extends TreeD {
+  TreeD l;
+  TreeD r;
+
+  Split(TreeD _l, TreeD _r) {
+    l = _l;
+    r = _r;
+  }
+
+  boolean accept(bTreeVisitorI ask) {
+    return ask.forSplit(l, r);
+  }
+
+  int accept(iTreeVisitorI ask) {
+    return ask.forSplit(l, r);
+  }
+}
+```
+
+### Here is *iHeightV*
+```java
+class iHeightV implements iTreeVisitorI {
+  public int forBud() {
+    return //...
+  }
+
+  public int forFlat(FruitD f, TreeD t) {
+    return //...
+  }
+
+  public int forSplit(TreeD l, TreeD r) {
+    return //...
+  }
+}
+```
+### Complete these methods
+```java
+class iHeightV implements iTreeVisitorI {
+  public int forBud() {
+    return 0;
+  }
+
+  public int forFlat(FruitD f, TreeD t) {
+    return 1 + t.accept(this);
+  }
+
+  public int forSplit(TreeD l, TreeD r) {
+    return 1 + Math.max(l.accept(this), r.accept(this));
+  }
+}
+```
+
+### What is the value of
+```java
+new Split(
+  new Bud(),
+  new Bud())
+.accept(new iHeightv())
+```
+It's 1
+
+### And why is it 1?
+Because `new Bud().accept(new iHeigthV())` is 0 and then we add the 1 from `new Split(...).accept(iHeightV())`
+
+###  vVhat is the value of
+```java
+new Split(
+  new Split(
+    new Flat(
+      new Fig(),
+      new Bud()),
+    new Flat(
+      new Fig(),
+      new Bud())),
+  new Flat(
+    new Fig(),
+    new Flat(
+      new Lemon(),
+      new Flat(
+        new Apple(),
+        new Bud()))))
+.accept (
+  new tSubstV(new Apple(), new Fig()))
+```
+Since *tSubstV* substitutes figs for apples, it is
+```java
+new Split(
+  new Split(
+    new Flat(
+      new Apple(),
+      new Bud()),
+    new Flat(
+      new Apple(),
+      new Bud())),
+  new Flat(
+    new Apple(),
+    new Flat(
+      new Lemon(),
+      new Flat(
+        new Apple(),
+        new Bud()))))
+```
+
+### Correct. Define *tSubstV*
+It's like *SubstFishV* and *SubstIntV* from the end of chapter 5, but we can't do it just yet.
+
+### What's the problem?
+It's methods produce *TreeD*s, which means we need to add another interface
+```java
+interface tTreeVisitorI {
+  TreeD forBud();
+  TreeD forFlat(FruitD f, TreeD t);
+  TreeD forSplit(TreeD l, TreeD r);
+}
+```
+
+### Good job. How about the datatype *TreeD*.
+We need to add another method to the protocol
+```java
+abstract class TreeD {
+  abstract boolean accept(bTreeVisitorI ask);
+  abstract int accept(iTreeVisitorI ask);
+  abstract TreeD accept(tTreeVisitorI ask);
+}
+```
+
+### Define the variants of *TreeD*
+```java
+class Bud extends TreeD {
+  boolean accept(bTreeVisitorI ask) {
+    return ask.forBud();
+  }
+
+  int accept(iTreeVisitorI ask) {
+    return ask.forBud();
+  }
+
+  TreeD accept(tTreeVisitorI ask) {
+    return ask.forBud();
+  }
+}
+
+class Split extends TreeD {
+  TreeD l;
+  TreeD r;
+
+  Split(TreeD _l, TreeD _r) {
+    l = _l;
+    r = _r;
+  }
+
+  boolean accept(bTreeVisitorI ask) {
+    return ask.forSplit(l, r);
+  }
+
+  int accept(iTreeVisitorI ask) {
+    return ask.forSplit(l, r);
+  }
+
+  TreeD accept(tTreeVisitorI ask) {
+    return ask.forSplit(l, r);
+  }
+}
+
+class Flat extends TreeD {
+  FruitD f;
+  TreeD t;
+
+  Flat(FruitD _f, TreeD _t) {
+    f = _f;
+    t = _t;
+  }
+
+  boolean accept(bTreeVisitorI ask) {
+    return ask.forFlat(f, t);
+  }
+
+  int accept(iTreeVisitorI ask) {
+    return ask.forFlat(f, t);
+  }
+
+  TreeD accept(tTreeVisitorI ask) {
+    return ask.forFlat(f, t);
+  }
+}
+```
+
+### Then define *tSubstV*
+```java
+class tSubstV implements tTreeVisitorI {
+  FruitD n;
+  FruitD o;
+
+  tSubstV(FruitD _n, FruitD _o) {
+    n = _n;
+    o = _o;
+  }
+
+  public TreeD forBud() {
+    return new Bud();
+  }
+
+  public TreeD forFlat(FruitD f, TreeD t) {
+    if (o.equals(f)) {
+      return new Flat(n, t.accept(this));
+    }
+
+    else
+      return new Flat(f, t.accept(this));
+  }
+
+  public TreeD forSplit(TreeD l, TreeD r) {
+    return new Split(t.accept(this), r.accept(this));
+  }
+}
+```
+
+### Here is a *TreeD* that has three Figs:
+```java
+new Split(
+  new Split(
+    new Flat(
+      new Fig(),
+      new Bud()),
+    new Flat(
+      new Fig(),
+      new Bud())),
+  new Flat(
+    new Fig(),
+    new Flat(
+      new Lemon(),
+      new Flat(
+        new Apple(),
+        new Bud()))))
+```
+### Now define *iOccursV*, whose methods count how often some *FruitD* occur in a tree
+```java
+class iOccursV implements iTreeVisitorI {
+  FruitD a;
+
+  iOccursV(FruitD _a) {
+    a = _a;
+  }
+
+  public int forBud() {
+    return 0;
+  }
+
+  public int forFlat(FruitD f, TreeD t) {
+    if (f.equals(a)) {
+      return 1 + t.accept(this);
+    }
+
+    else
+      return t.accept(this);
+  }
+
+  public int forSplit(TreeD l, TreeD r) {
+    return t.accept(this) + r.accept(this);
+  }
+}
+```
+
+### Do you like fruits with yogurt?
+Yes, that is nice
+
+### Is it disturbing that we have three nearly identical versions of `accept` in *TreeD*s and its variants?
+Copying definitions is always bad.
+If we make a mistake and copy a definition. we copy mistakes.
+If we modify one, it's likely that we might forget to modify the other.
+
+### Can we avoid it?
+If **boolean** and **int** were classes, we could use *Object* for **boolean**, **int** and *TreeD*.
+Unfortunately they are not
+
+### Remember *Integer* and *Boolean*? They make it possible
+Yes, *Boolean* is the class that corresponds to **boolean**, and *Integer* corresponds to **int**
+
+### Here is the **interface** for a protocol that produces *Object* in place of **boolean**, **int** and **TreeD**
+```java
+interface TreeVisitorI {
+  Object forBud();
+  Object forFlat(FruitD f, TreeD t);
+  Object forSplit(TreeD t, TreeD r),
+}
+```
+### Here is the datatype and the *Bud* variant
+```java
+abstract class TreeD {
+  abstract Object accept(TreeVisitorI ask);
+}
+
+class Bud extends TreeD {
+  Object accept(TreeVisitorI ask) {
+    return ask.forBud();
+  }
+}
+```
+### Define the remaining variants of *TreeD*
+```java
+class Split extends TreeD {
+  TreeD l;
+  TreeD r;
+
+  Split(TreeD _l, TreeD _r) {
+    l = _l;
+    r = _r;
+  }
+
+  Object accept(TreeVisitorI ask) {
+    return ask.forSplit(t, r);
+  }
+}
+
+class Flat extends TreeD {
+  FruitD f;
+  TreeD t;
+
+  Flat(FruitD _f, TreeD _t) {
+    f = _f;
+    t = _t;
+  }
+
+  Object accept(TreeVisitorI ask) {
+    return ask.forFlat(f, t);
+  }
+}
+```
+
+### Good. Now define *IsFlatV*, an *Object* producing version of *blsFlatV*
+```java
+class IsFlatV implements TreeVisitorI {
+  public Object forBud() {
+    return Boolean.TRUE;
+  }
+
+  public  forFlat(FruitD f, TreeD t) {
+    return t.accept(this);
+  }
+
+  public Object forSplit(TreeD t, TreeD r) {
+    return Boolean.FALSE;
+  }
+}
+```
+
+### And how about *IsSplitV*?
+Now that's different.
+Here we need a way to determine the underlying **boolean** of the *Boolean*
+that is produced by `l.accept(this)` in the original definition.
+
+### Okay. Here it is
+```java
+class IsSplitV implements TreeVisitorI {
+  public Object forBud() {
+    return Boolean.TRUE;
+  }
+
+  public Object forFlat(FruitD f, TreeD t) {
+    return Boolean.FALSE;
+  }
+
+  public Object forSplit(TreeD t, TreeD r) {
+    return ((Boolean) t.accept(this)).booleanValue() && ((Boolean) r.accept(this)).booleanValue();
+  }
+}
+```
+Oh, because `l.accept(this)` produces an *Object*, we must first convert it to a *Boolean*.
+Then we can determine the underlying **boolean** with the `booleanValue` method.
+We have seen this in chapter 5 when we converted an *Object* to a *OneMoreThan*.
+
+### Will the conversion always work?
+In this case yes, because the *IsSplitV* visitor methods always return *Boolean*
+
+### Did you think that was bad? Then study this definition during your next break.
+```java
+class OccursV implements TreeVisitorI {
+  FruitD a;
+
+  OccursV(FruitD _a) {
+    a = _a;
+  }
+
+  public Object forBud() {
+    return Integer.valueOf(0);
+  }
+
+  public Object forFlat(FruitD f, TreeD t) {
+    if (f.equals(a)) {
+      return Integer.valueOf(
+        ((Integer)t.accept(this)).intValue()
+        + 1);
+    }
+
+    else
+      return t.accept(this);
+  }
+
+  public Object forSplit(TreeD l, TreeD r) {
+    return Integer.valueOf(
+      ((Integer) l.accept(this)).intValue()
+      + ((Integer) r.accept(this)).intValue()
+    );
+  }
+}
+```
+Oh baby!
+
+## Chapter 8
+
+### What is the value of (7 + ((4 - 3) * 5))?
+12
+
+### What is the value of (+ 7 (* (- 4 3) 5))?
+Also 12
+
+### What is the value of
+```java
+  new Plus(
+    new Const(new Integer(7)),
+    new Prod(
+      new Diff(
+        new Const(new Integer(4)),
+        new Const(new Integer(3))),
+      new Const(new Integer(5))))
+```
+`new Integer(12)`, we have just rewritten the previous expression using *Integer* and constructors
+
+### Where do the constructors come from?
+A datatype and its variants that represent arithmetic expressions
+
+### Did you like that?
+So far so good
+
+### Vhat is the value of ({7,5} U (({4} \ {3}) ⋂ {5}))?
+{7, 5}
+
+### What is the value of (U {7,5} (⋂ (\ {4} {3}) {5}))?
+Also {7, 5}
+
+### What is the value of (+ {7,5} (x (- {4} {3}) {5}))?
+{7, 5}, we just renamed the operators

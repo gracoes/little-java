@@ -38,8 +38,37 @@ class SubstV implements PieVisitorI {
   }
 
   public PieD forTop(Object t, PieD r) {
-    if (old.equals(t)) {
+    if (o.equals(t)) {
       return new Top(n, r.accept(this));
+    }
+
+    else
+      return new Top(t, r.accept(this));
+  }
+}
+
+class LtdSubstV implements PieVisitorI {
+  int c;
+  Object n;
+  Object o;
+
+  LtdSubstV(int _c, Object _n, Object _o) {
+    c = _c;
+    n = _n;
+    o = _o;
+  }
+
+  public PieD forBot() {
+    return new Bot();
+  }
+
+  public PieD forTop(Object t, PieD r) {
+    if (c == 0) {
+      return new Top(t, r);
+    }
+
+    if (o.equals(t)) {
+      return new Top(n, r.accept(new SubstV(c - 1, n, o)));
     }
 
     else
