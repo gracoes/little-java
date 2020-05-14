@@ -9,7 +9,7 @@ class IsFlatV implements TreeVisitorI {
     return Boolean.TRUE;
   }
 
-  public  forFlat(FruitD f, TreeD t) {
+  public Object forFlat(FruitD f, TreeD t) {
     return t.accept(this);
   }
 
@@ -82,7 +82,7 @@ class Split extends TreeD {
   }
 
   Object accept(TreeVisitorI ask) {
-    return ask.forSplit(t, r);
+    return ask.forSplit(l, r);
   }
 }
 

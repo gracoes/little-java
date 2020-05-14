@@ -4951,3 +4951,961 @@ Also {7, 5}
 
 ### What is the value of (+ {7,5} (x (- {4} {3}) {5}))?
 {7, 5}, we just renamed the operators
+
+### What is the value of
+```java
+new Plus(
+  new Const(
+    new Empty()
+      .add(new Integer(7))
+      .add(new Integer(5))),
+  new Prod(
+    new Diff(
+      new Const(
+        new Empty().add(new Integer(4))),
+      new Const(
+        new Empty().add(new Integer(3)))),
+    new Const(
+      new Empty().add(new Integer(5)))))
+```
+```java
+new Empty()
+  .add(new Integer(7))
+  .add(new Integer(5))
+```
+because we have just rewritten the previous expression using the constructors.
+
+### Where do the constructors come from?
+A datatype and its variants that represent set expressions
+
+### Do you still like it?
+Not so much
+
+### Does the arithmetic expression look like the set expression?
+Yep, except for the constants
+
+### Let's say that an expression is either a `Plus(exprl,expr2)`, a `Diff(exprl,expr2)`,
+### a `Prod(exprl,expr2)`, or a constant, where `expr1` and `expr2` stand for arbitrary expressions.
+### What should be the visitor interface?
+It should consume expressions or constants and produce expressions or constants.
+```java
+interface ExprVisitorI {
+  Object forPlus(ExprD l, ExprD r);
+  Object forDiff(ExprD l, ExprD r);
+  Object forProd(ExprD l, ExprD r);
+  Object forConst(Object c);
+}
+```
+
+###  Good answer. Here is the datatype now.
+```java
+abstract class ExprD {
+  abstract Object accept(ExprVisitorI ask);
+}
+```
+### Define the variants of the datatype and equip them with an accept method that produces *Object*s
+```java
+class Plus extends ExprD {
+  ExprD l;
+  ExprD r;
+
+  Plus(ExprD _l, ExprD _r) {
+    l = _l;
+    r = _r;
+  }
+
+  Object accept(ExprVisitorI ask) {
+    return ask.forPlus(l, r);
+  }
+}
+
+class Diff extends ExprD {
+  ExprD l;
+  ExprD r;
+
+  Diff(ExprD _l, ExprD _r) {
+    l = _l;
+    r = _r;
+  }
+
+  Object accept(ExprVisitorI ask) {
+    return ask.forDiff(l, r);
+  }
+}
+
+class Prod extends ExprD {
+  ExprD l;
+  ExprD r;
+
+  Prod(ExprD _l, ExprD _r) {
+    l = _l;
+    r = _r;
+  }
+
+  Object accept(ExprVisitorI ask) {
+    return ask.forProd(l, r);
+  }
+}
+
+class Const extends ExprD {
+  Object c;
+
+  Const(Object _c) {
+    c = _c;
+  }
+
+  Object accept(ExprVisitorI ask) {
+    return ask.forConst(c);
+  }
+}
+```
+
+### Can we now define a visitor whose methods determine the value of an arithmetic expression?
+Yes, we can. It must have four methods, one per variant.
+
+### How de we add `new Integer(3)` and `new Integer(2)`
+We have done this before. We use the method `intValeu` to determine the **int**s
+that correspond to the *Integer*s and then add them together
+
+### But what is the result of `new Integer(3).intValue() + new Integer(2).intValue()`?
+It's the **int** 5
+
+### How do we turn that into an *Integer*?
+We use the *Integer* constructor
+
+### Okay, so here is a skeleton of *IntEvalV*.
+```java
+class IntEvalV implements ExprVisitorI {
+  public Object forPlus(ExprD l, ExprD r) {
+    return plus(l.accept(this), r.accept(this));
+  }
+
+  public Object forDiff(ExprD l, ExprD r) {
+    return diff(l.accept(this), r.accept(this));
+  }
+
+  public Object forProd(ExprD l, ExprD r) {
+    return prod(l.accept(this), r.accept(this));
+  }
+
+  public Object forConst(Object c) {
+    return c;
+  }
+
+  Object plus(/*...*/ l, /*...*/ r) {
+    return //...
+  }
+
+  Object diff(/*...*/ l, /*...*/ r) {
+    return //...
+  }
+
+  Object prod(/*...*/ l, /*...*/ r) {
+    return //...
+  }
+}
+```
+That's an interesting skeleton.
+It contains five different kinds of blanks and two of them occur three times each.
+But we can see the bones only. Where is the beef?
+
+### How does forPlus work?
+It consumes two *ExprD*, determines their value by calling `accept` on them and uses `plus` to produce an *Object*
+
+### How are the values represented?
+They are instances of *Object*
+
+### So what kind of values must `plus` consume?
+*Object*s, since that's what `l.accept(this)` and `r.accept(this)` produce
+
+### What must we put in the first and second blanks?
+*Object*
+
+### Can we add *Object*s?
+No, we can only add **int**s so we must convert them to *Integer* first
+
+### Can we convert all *Object*s to *Integer*s?
+No, but all *Object*s that *IntEvalV* produces will be constructed with `new Integer(...)` so it is safe in this case.
+
+### Is that true? What is the value of
+```java
+new Plus(
+  new Const(new Empty()),
+  new Const(new Integer(5)))
+.accept(new IntEvalV())
+```
+Wow. At some level, this is nonsense
+
+### Correct, so sometimes the conversion may fail
+### because we use an instance of *IntEvalV* on nonsensical arithmetic expressions.
+What should we do?
+
+### We agree to avoid such arithmetic expressions
+#### (In other words. we have unsafe evaluators for our expressions. One way to make them safe is to add a method that checks whether constants are instances of the proper class and that raises an exception. An alternative is to define a visitor that type checks the arithmetic expressions we wish to evaluate)
+And their set expressions, too
+
+### If we want to add `l` and `r´, we write
+```java
+new Integer(
+  ((Integer) l).intValue()
+  +
+  ((Integer)l).intValue())
+```
+### Complete the definition now
+```java
+class IntEvalV implements ExprVisitorI {
+  public Object forPlus(ExprD l, ExprD r) {
+    return plus(l.accept(this), r.accept(this));
+  }
+
+  public Object forDiff(ExprD l, ExprD r) {
+    return diff(l.accept(this), r.accept(this));
+  }
+
+  public Object forProd(ExprD l, ExprD r) {
+    return prod(l.accept(this), r.accept(this));
+  }
+
+  public Object forConst(Object c) {
+    return c;
+  }
+
+  Object plus(Object l, Object r) {
+    int n = ((Integer) l).intValue();
+    int m = ((Integer) r).intValue();
+
+    return Integer.valueOf(n + m);
+  }
+
+  Object diff(Object l, Object r) {
+    int n = ((Integer) l).intValue();
+    int m = ((Integer) r).intValue();
+
+    return Integer.valueOf(n - m);
+  }
+
+  Object prod(Object l, Object r) {
+    int n = ((Integer) l).intValue();
+    int m = ((Integer) r).intValue();
+
+    return Integer.valueOf(n * m);
+  }
+}
+```
+
+### That one was pretty easy, wasn't it?
+Yeah. Let's implement ExprVisitorI for sets
+
+### What do we need to implement one for sets?
+We need methods for `plus`ing, `diff`ing and `prod`ing sets
+
+### That's correct, and here is everything
+```java
+abstract class SetD {
+  SetD add(Integer i) {
+    if (mem(i)) {
+      return this;
+    }
+
+    return new Add(i, this);
+  }
+
+  abstract boolean mem(Integer i);
+  abstract SetD plus(SetD s);
+  abstract SetD diff(SetD s);
+  abstract SetD prod(SetD s);
+}
+```
+Wow
+
+### Explain the method `add` in your own words.
+`add` consumes an *Integer* and uses `mem` to see if the *Integer* `i` is already in the *SetD*.
+If it is it returns the current *SetD*, otherwise it returns a new *SetD*
+
+### Why is this so tricky?
+Constructors always construct, and `add` does not always construct.
+
+### Do we need to understand that?
+Not now, but feel free to absorb it when you have the time.
+
+### Define the various *Empty* and *Add* for *SetD*
+```java
+class Empty extends SetD {
+  boolean mem(Integer i) {
+    return false;
+  }
+
+  SetD plus(SetD s) {
+    return s;
+  }
+
+  SetD diff(SetD s) {
+    return new Empty();
+  }
+
+  SetD prod(SetD s) {
+    return new Empty();
+  }
+}
+
+class Add extends SetD {
+  Integer i;
+  SetD s;
+
+  SetD(Integer _i, SetD _s) {
+    i = _i;
+    s = _s;
+  }
+
+  boolean mem(Integer n) {
+    return i.equals(n) || s.mem(n);
+  }
+
+  SetD plus(SetD t) {
+    return s.plus(t.add(i));
+  }
+
+  SetD diff(SetD t) {
+    if (t.mem(i)) {
+      return s.diff(t);
+    }
+
+    return s.diff(t).add(i);
+  }
+
+  SetD prod(SetD t) {
+    if (t.mem(i)) {
+      return s.prod(t).add(i);
+    }
+
+    return s.prod(t);
+  }
+}
+```
+
+### Do we need to understand these definitions?
+I would say so.
+We haven't even used visitors to define operations for union, set-difference, and intersection,
+but we trust you can.
+
+### What do we have to change in *IntEvalV* to obtain *SetEvalV* , an evaluator for set expressions?
+We would need to change what the methods, `plus`, `diff` and `prod`
+
+### How should we do that?
+We could just copy the definition of *IntEvalV* and replace its `plus`, `diff`, and `prod` methods.
+
+### That's the worst way of doing that
+What?
+
+### Why should we throw away more than half of what we have?
+That's true. If we copied the definition and changed it, we would have identical copies of `forPlus`, `forDiff`,
+`forProd`, and `forConst`. We should reuse this definition.
+
+### Yes, and we are about to show you better ways. How do we have to change `plus`, `diff`, and `prod`?
+Now we are not working with *Integer* we need to adapt those methods to work with *SetD* like
+```java
+Object plus (Object l, Object r) {
+  return ((SetD) l).plus((SetD) r));
+}
+```
+etc...
+
+### Very good, and if we define *SetEvalV* as an extension of *IntEvalV*, tahtss all we have to put inside of *SetEvalV*
+```java
+class SetEval extends IntEvalV {
+  Object plus (Object l, Object r) {
+    return ((SetD) l).plus((SetD) r);
+  }
+
+  Object diff (Object l, Object r) {
+    return ((SetD) l).diff((SetD) r);
+  }
+
+  Object prod (Object l, Object r) {
+    return ((SetD) l).prod((SetD) r);
+  }
+}
+```
+Now that's much easier than copying and modifying
+
+### Is it like `equals`?
+Yes it is like `equals` in the sense we are overriding the methods defined in *IntEvalV*
+
+### How many methods from *IntEvalV are overridden in *SetEvalV*?
+3, `plus`, `diff` and `prod`
+
+### How many methods from IntEvalv are not overridde~in SetEvalv?
+4, `forPlus`, `forDiff`,`forProd` and `forConst`
+
+### Does *SetEvalV* implements *ExprVisitorV*?
+Yes, since it **extends** from *InvEvalV* that implements *ExprVisitorV* so, *SetEvalV* implements *ExprVisitorV*
+implicitely
+
+### That's correct. What is the value of
+```java
+new Prod(
+  new Const(
+    new Empty().add(new Integer(7))),
+  new Const(
+    new Empty().add(new Integer(3))))
+.accept(new SetEvalV())
+```
+Intersting. How does this work now?
+
+### What type of value is
+```java
+new Prod(
+  new Const(
+    new Empty().add(new Integer(7))),
+  new Const(
+    new Empty().add(new Integer(3))))
+```
+It's a *Prod*, which is a *ExprD*
+
+### And what does `accept` consume?
+An *ExprVisitorI*, in this case a *SetEvalV*
+
+### What is
+```java
+new SetEvalv().forProd(
+  new Prod(
+    new Const(
+      new Empty().add(new Integer(7))),
+    new Const(
+      new Empty().add(new Integer(3)))))
+```
+It's value of `accept`
+
+### Where is the definition of *SetEvalV* method `forProd`?
+In *IntEvalV*
+
+### Suppose we had the values of
+```java
+new Const(
+  new Empty().add(new Integer(7)))
+.accept(this)
+```
+### and
+```java
+new Const(
+  new Empty().add(new Integer(3)))
+.accept(this)
+```
+### What would we have to evaluate next?
+If their values were `A` and `B`, we would have to determine the value of `prod(A,B)`
+
+### Isn't that strange?
+Why?
+
+### So far, we have always used a method on a particular object
+That's true. What is the object with which we use `prod(A,B)`?
+
+### It is **this** object
+So, that means we should evaluate `new SetEvalV().prod(A, B)`
+
+### Absolutely. If the use of a method omits the object, we take the one that we were working with before
+That clarifies things
+
+### Good. And now what?
+We still nedd to determine tha values of
+```java
+new Const(
+  new Empty().add(new Integer(7)))
+.accept(this)
+```
+and
+```java
+new Const(
+  new Empty().add(new Integer(3)))
+.accept(this)
+```
+
+### The values are obviously
+```java
+new Empty().add(new Integer(7))
+```
+### and
+```java
+new Empty().add(new Integer(3))
+```
+### Where is the definition of `forConst` that determines these values?
+In *IntEvalV*
+
+### Here is the next expression in our sequence:
+```java
+new SetEvalV().prod(
+  new Empty().add(new Integer(7)),
+  new Empty().add(new Integer(3)))
+```
+### Where does `prod` come from?
+It comes from *SetEvalV*
+
+### What next?
+Next we need to determine the value of
+```java
+new Empty()
+  .add(new Integer(7))
+  .prod(
+    new Empty()
+    .add(new Integer(3)))
+```
+
+### Is `new Empty().add(new Integer(7))` an instance of *SetD*?
+Yes it is, since `add` always return a *SetD*
+
+### And how about `new Empty().add(new Integer(3))`?
+It's also a *SetD*
+
+### And that is why the method must contain a conversion from *Object* to *SetD*s
+Because although `prod` receives *Object*s, we know they are actually *SetD*s
+
+### Time for the last question. Where does this `prod` come from now?
+Now it comes from *SetD*
+
+### And what does `prod` do?
+It determines the intersection between two *SetD*s
+
+### Is it natural that *SetEvalV* extends *IntEvalV*?
+No, not at all
+
+### Why did we do that?
+So we could reuse the work done in *IntEvalV*, more specifically the `for...` methods since those would always be needed
+
+### But just because something works, it doesn't mean it's rational.
+Yes, let's do better. We have defined all these classes ourselves, so we are free to rearrange them any way we want.
+
+### What distinguishes *IntEvalV* from *SetEvalV*?
+Its `plus`, `diff` and `prod` methods
+
+### What are the pieces that they have in common?
+The `for...` methods
+
+### Good. Here is how we express that.
+```java
+abstract class EvalD implements ExprVisitorI {
+  public Object forPlus(ExprD l, ExprD r) {
+    return plus(l.accept(this), r.accept(this));
+  }
+
+  public Object forDiff(ExprD l, ExprD r) {
+    return diff(l.accept(this), r.accept(this));
+  }
+
+  public Object forProd(ExprD l, ExprD r) {
+    return prod(l.accept(this), r.accept(this));
+  }
+
+  public Object forConst(Object c) {
+    return c;
+  }
+
+  abstract Object plus(Object l, Object r);
+  abstract Object diff(Object l, Object r);
+  abstract Object prod(Object l, Object r);
+}
+```
+And here are it's variants
+```java
+class IntEvalV extends EvalD {
+  Object plus(Object l, Object r) {
+    int n = ((Integer) l).intValue();
+    int m = ((Integer) r).intValue();
+
+    return Integer.valueOf(n + m);
+  }
+
+  Object diff(Object l, Object r) {
+    int n = ((Integer) l).intValue();
+    int m = ((Integer) r).intValue();
+
+    return Integer.valueOf(n - m);
+  }
+
+  Object prod(Object l, Object r) {
+    int n = ((Integer) l).intValue();
+    int m = ((Integer) r).intValue();
+
+    return Integer.valueOf(n * m);
+  }
+}
+
+class SetEval extends EvalD {
+  Object plus (Object l, Object r) {
+    return ((SetD) l).plus((SetD) r);
+  }
+
+  Object diff (Object l, Object r) {
+    return ((SetD) l).diff((SetD) r);
+  }
+
+  Object prod (Object l, Object r) {
+    return ((SetD) l).prod((SetD) r);
+  }
+}
+```
+Isn't this abstrac class like *PointD*?
+
+### Yes, we can think of it as a datatype for *EvalD* visitors that collects all the common elements as concrete methods
+### The pieces that differ from one variant to another are specified as abstract methods.
+Ah, makes sense
+
+### Is it natural for two evaluators to be on the same footing?
+Yes it make perfect sense
+
+### Rembemr *SubstV* from chapter 6?
+```java
+class SubstV implements PieVisitorI {
+  Object n;
+  Object o;
+
+  SubstV(Object _n, Object _o) {
+    n = _n;
+    o = _o;
+  }
+
+  public PieD forBot() {
+    return new Bot();
+  }
+
+  public PieD forTop(Object t, PieD r) {
+    if (o.equals(t)) {
+      return new Top(n, r.accept(this));
+    }
+
+    else
+      return new Top(t, r.accept(this));
+  }
+}
+```
+Yes, and *LtdSubstV* too
+```java
+class LtdSubstV implements PieVisitorI {
+  int c;
+  Object n;
+  Object o;
+
+  LtdSubstV(int _c, Object _n, Object _o) {
+    c = _c;
+    n = _n;
+    o = _o;
+  }
+
+  public PieD forBot() {
+    return new Bot();
+  }
+
+  public PieD forTop(Object t, PieD r) {
+    if (c == 0) {
+      return new Top(t, r);
+    }
+
+    if (o.equals(t)) {
+      return new Top(n, r.accept(new SubstV(c - 1, n, o)));
+    }
+
+    else
+      return new Top(t, r.accept(this));
+  }
+}
+```
+
+### What do the two visitors have in common?
+Many things, `n`, `o` and `forBot`
+
+### Where do they differ?
+In the implementation of `forTop` and *LtdSubstV* has an extra field, `c`
+
+### And where do we put the pieces that two classes have in common?
+In a **abstract** datatype class
+
+### What else does the abstract class contain?
+It contains all that is common between the two visitors and specifies the parts that are different between them
+
+### Define the **abstract class** *SubstD*, which contains all the common pieces and specifies what
+### a concrete pie substituter must contain
+```java
+abstract class SubstD implements PieVisitorI {
+  Object n;
+  Object o;
+
+  public PieD forBot() {
+    return new Bot();
+  }
+
+  abstract PieD forTop(Object t, PieD r);
+}
+```
+
+### We can define *SubstV* by extending *SubstD*
+```java
+class SubstV extends SubstD {
+  SubstV(Object _n, Object _o) {
+    n = _n;
+    o = _o;
+  }
+
+  PieD forTop(Object t, PieD r) {
+    if (t.equals(o)) {
+      return new Top(n, r.accept(this));
+    }
+
+    return new Top(t, r.accept(this));
+  }
+}
+```
+### Define *LtdSubstV*
+```java
+class LtdSubstV extends SubstD {
+  int c;
+
+  LtdSubstV(int _c, Object _n, Object _o) {
+    c = _c;
+    n = _n;
+    o = _o;
+  }
+
+  PieD forTop(Object t, PieD r) {
+    if (c == 0) {
+      return new Top(t, r);
+    }
+
+    if (t.equals(o)) {
+      return new Top(n, r.accept(new LtdSubstV(c - 1, _n, _o)));
+    }
+
+    return new Top(t, r.accept(this));
+  }
+}
+```
+
+### Do the two remaining classes still have things in common?
+No, but the constructors are similar.
+Shouldn't we life the *SubstV* constructor into *SubstD*, because it holds the common `n` and `o` fields?
+
+### Great idea. Here is the new version of *SubstV*
+```java
+abstract class SubstD implements PieVisitorI {
+  Object n;
+  Object o;
+
+  SubstD(Object _n, Object _o) {
+    n = _n;
+    o = _o;
+  }
+
+  public PieD forBot() {
+    return new Bot();
+  }
+
+  abstract PieD forTop(Object t, PieD r);
+}
+```
+### Revise *SubstV* and *LtdSubstV*
+Here it is
+```java
+class SubstV extends SubstD {
+  SubstV(Object _n, Object _o) {
+    super(_n, _o);
+  }
+
+  PieD forTop(Object t, PieD r) {
+    if (t.equals(o)) {
+      return new Top(n, r.accept(this));
+    }
+
+    return new Top(t, r.accept(this));
+  }
+}
+
+class LtdSubstV extends SubstD {
+  int c;
+
+  LtdSubstV(int _c, Object _n, Object _o) {
+    super(_n, _o);
+    c = _c;
+  }
+
+  PieD forTop(Object t, PieD r) {
+    if (c == 0) {
+      return new Top(t, r);
+    }
+
+    if (t.equals(o)) {
+      return new Top(n, r.accept(new LtdSubstV(c - 1, _n, _o)));
+    }
+
+    return new Top(t, r.accept(this));
+  }
+}
+```
+
+### Was that first part easy?
+Yeah
+
+### That's neat. How about some art work?
+```
+     ---------------                                      ----------------
+     |     PieD    | ----------------accept---------------|  PieVisitorI |
+     ---------------                                      ----------------
+        ^        ^                                                |
+       /         |                                                |
+      /          |                                                |
+  ---------    -------                                     ---------------
+   | Bot  |    | Top |                                     |   SubstD    |
+  ---------    -------                                     ---------------
+                                                               ^       ^
+                                                              /         \
+                                                             /           \
+                                                       ----------    -------------
+                                                       | SubstV |    | LtdSubstV |
+                                                       ----------    -------------
+```
+Is this called a pie chart?
+
+### No, but the picture captures the important relationships.
+Fine
+
+### Is it also possible to define *LtdSubstV* as an extension of *SubstV*?
+Yes, it may be even better. In some sense *LtdSubstV* just adds a service to *SubstV*: It counts as it substitutes
+
+### If *LtdSubstV* is defined as an extension of *SubstV*, what has to be added and what has to be changed?
+As we just said, `c` is an addition and `forTop` is different.
+
+### Here is the good old definition of *SubstV* from chapter 6 one more time.
+```java
+class SubstV implements PieVisitorI {
+  Object n;
+  Object o;
+
+  SubstV(Object _n, Object _o) {
+    n = _n;
+    o = _o;
+  }
+
+  public PieD forBot() {
+    return new Bot();
+  }
+
+  public PieD forTop(Object t, PieD r) {
+    if (o.equals(t)) {
+      return new Top(n, r.accept(this));
+    }
+
+    else
+      return new Top(t, r.accept(this));
+  }
+}
+```
+### Define *LtdSubstV* as an extension of *SubstV*
+```java
+class LtdSubstV extends SubstV {
+  int c;
+
+  LtdSubstV(int _c, Object _n, Object _o) {
+    super(_n, _o);
+    c = _c;
+  }
+
+  PieD forTop(Object t, PieD r) {
+    if (c == 0) {
+      return new Top(t, r);
+    }
+
+    if (t.equals(o)) {
+      return new Top(n, r.accept(new LtdSubstV(c - 1, _n, _o)));
+    }
+
+    return new Top(t, r.accept(this));
+  }
+}
+```
+
+### Let's draw a picture.
+```
+     ---------------                                      ----------------
+     |     PieD    | ----------------accept---------------|  PieVisitorI |
+     ---------------                                      ----------------
+        ^        ^                                               ^
+       /         |                                               |
+      /          |                                               |
+  ---------    -------                                      ------------
+   | Bot  |    | Top |                                      |  SubstV  |
+  ---------    -------                                      ------------
+                                                                  ^
+                                                                  |
+                                                                  |
+                                                            -------------
+                                                            | LtdSubstV |
+                                                            -------------
+```
+
+## Chapter 9
+
+### Remember *PointD*? If not, here it is the datatype with one additional method, `minus`
+### We will talk about `minus` when we need it, but for now, just recall *PointD*'s variants
+```java
+class CartesianPt extends PointD {
+  CartesianPt(int _x, int _y) {
+   super(_x, _y);
+  }
+
+  int distanceToO() {
+    return (int)(Math.sqrt(x * x + y * y));
+  }
+}
+
+class ManhattanPt extends PointD {
+  ManhattanPt(int _x, int _y) {
+    super(_x, _y);
+  }
+
+  int distanceToO() {
+    return x + y;
+  }
+}
+```
+
+### Good. Take a look at this extension of *ManhattanPt*
+```java
+class ShadowedManhattanPt extends ManhattanPt {
+  int deltaX;
+  int deltaY;
+
+  ShadowedManhattanPt(int _x, int _y, int _deltaX, int _deltaY) {
+    super(_x, _y);
+    deltaX = _deltaX;
+    deltaY = _deltaY;
+  }
+
+  int distanceToO() {
+    return super.distanceToO() + deltaY + deltaY;
+  }
+}
+```
+### What is unusual about the constructor?
+It uses the fields `deltaX` and `deltaY` in addition to `super(...)`
+
+### And what does that mean?
+It means it uses the *ManhattanPt* constructor to set `x` and `y` fields
+but is own constructor to set `deltaX` and `deltaY`
+
+### Okay. So what is a *ShadowedManhattanPt*?
+It is a *ManhattanPt* with two additional fields: `deltaX` and `deltaY`.
+These two represent the information that determines how far the shadow is from the point described by `x` and `y`.
+
+### Is this a *ShadowedManhattanPt*: `new ShadowedManhattanPt(2,3,1,O)`?
+Yes
+
+### What is unusual about `distanceToO`?
+It adds the result of `super.distanceToO` with the sum of `deltaX` and `deltaY`
+
+### Here, `super.distanceToO` refers to the method definition of `distanceToO`
+### that is relevant in the class that *ShadowedManhattanPt* extends.
+Ah, so it refers to the `distanceToO` in *ManhattanPt*
+
+### Correct. But what would we have done if *ManhattanPt* had not defined `distanceToO`?
+Then we would refer to the definition in the class that *ManhattanPt* extends, right?
+
+### Yes, and so on. What is the value of `new ShadowedManhattanPt(2, 3, 1, 0).distanceToO()`
+It's 2 + 3 + 1 + 0, which is 6
+

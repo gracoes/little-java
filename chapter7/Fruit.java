@@ -20,7 +20,7 @@ class Pear extends FruitD {
 
 class Lemon extends FruitD {
   public boolean equals(Object o) {
-    return (0 instanceof Lemon);
+    return (o instanceof Lemon);
   }
 }
 

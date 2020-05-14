@@ -12,3 +12,5 @@ use visitor protocols so that all methods for a function can be found in a singl
 don't forget to create a new visitor.
 
 6. When designing visitor protocols for many different types, create a unifying protocol using *Object*
+
+7. When extending a class, use overriding to enrich its functionality.
