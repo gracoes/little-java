@@ -14,3 +14,6 @@ don't forget to create a new visitor.
 6. When designing visitor protocols for many different types, create a unifying protocol using *Object*
 
 7. When extending a class, use overriding to enrich its functionality.
+
+8. If a datatype may have to be extended, be foward looking and
+use a constructor-like (overridable) method so that visitors can be extended, too

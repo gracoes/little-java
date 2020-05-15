@@ -5909,3 +5909,743 @@ Then we would refer to the definition in the class that *ManhattanPt* extends, r
 ### Yes, and so on. What is the value of `new ShadowedManhattanPt(2, 3, 1, 0).distanceToO()`
 It's 2 + 3 + 1 + 0, which is 6
 
+### Precisely. Now take a look a this extension of *CartesianPt*
+```java
+class ShadowedCartesianPt extends CartesianPt {
+  int deltaX;
+  int deltaY;
+
+  ShadowedCartesianPt(int _x, int _y, int _deltaX, int _deltaY) {
+    super(_x, _y);
+    deltaX = _deltaX;
+    deltaY = _deltaY;
+  }
+
+  int distanceToO() {
+    return super.distanceToO() + (int)(Math.sqrt(deltaX * deltaX + deltaY * deltaY));
+  }
+}
+```
+
+### What is unusual about the constructor?
+It's equal to *ShadowedManhattanPt*
+
+### Is this a *ShadowedCartesianPt* `new ShadowedCartesianPt(12, 5, 3, 4)´?
+IT sure is
+
+### What is the value of `new ShadowedCartesianPt(12, 5, 3, 4).distanceToO()`?
+It's sqrt(12 x 12 + 5 x 5) + sqrt(3 x 3 + 4 x 4), which is 13 + 5 and that's 18
+
+### What do we expect?
+17, obviously.
+
+### Why 17?
+Because we need to think of this point as if it were `new CartesianPt(15, 9)` (12 + 3, 5 + 4)
+
+### We need to add `deltaX` to `x` and `deltaY` to `t` when we think of *ShadowedCartesianPt*
+And indeed, the value of `new CartesianPt(15,9).distanceToO()` is 17.
+
+### Does this explain how `distanceToO` should measure the distance of a *ShadowedCartesianPt* to the origin?
+Completely. It should make a new *CartesianPt* by adding the corresponding fields
+and should then measure the distance of that new point to the origin.
+
+### Revise the definition of *ShadowedCartesianPt* accordingly
+```java
+class ShadowedCartesianPt extends CartesianPt {
+  int deltaX;
+  int deltaY;
+
+  ShadowedCartesianPt(int _x, int _y, int _deltaX, int _deltaY) {
+    super(_x, _y);
+    deltaX = _deltaX;
+    deltaY = _deltaY;
+  }
+
+  int distanceToO() {
+    return new CartesianPt(x + deltaX, y + deltaY).distanceToO();
+  }
+}
+```
+
+### Do we still need the new *CartesianPt* after `distanceToO` has determined the distance?
+Not really
+
+###  Correct. What is the value of
+```java
+new CartesianPt(3,4)
+  .closerToO(new ShadowedCartesianPt(1,5,1,2))?
+```
+**true**, because the distance to origin of *CartesianPt* is 5 while the the one of *ShadowedCartesianPt* is 7
+
+### Here are circles and squares.
+```java
+class Circle extends ShapeD {
+  int r;
+
+  Circle(int _r) {
+    r = _r;
+  }
+
+  boolean accept(ShapeVisitorI ask) {
+    ask.forCircle(r);
+  }
+}
+
+class Square extends ShapeD {
+  int s;
+
+  Circle(int _s) {
+    s = _s;
+  }
+
+  boolean accept(ShapeVisitorI ask) {
+    ask.forSquare(s);
+  }
+}
+```
+And here is *ShapeD*
+```java
+abstract class ShapeD {
+  abstract boolean accept(ShapeVisitorI ask);
+}
+```
+
+### Nice. We also need an interface, and here it is
+```java
+interface ShapeVisitorI {
+  boolean forCircle(int r);
+  boolean forSquare(int s);
+  boolean forTrans(PointD q, ShapeD s);
+}
+```
+It seems there is another variant *Trans*
+
+### Yes and we will need this third variant.
+```java
+// Translation
+class Trans extends ShapeD {
+  Point q;
+  ShapeD s;
+
+  Trans(Point _q, ShapeD _s) {
+    q = _q;
+    s = _s;
+  }
+
+  boolean accept(ShapeVisitorI ask) {
+    return ask.forTrans(q, s);
+  }
+}
+```
+Ok, but what now?
+
+### Let's create a circle.
+Ok, `new Circle(10)`
+
+### How should we think about that circle?
+It has a radius of 10
+
+### Good. So how should we think about `new Square(10)`?
+It's a square with side of 10
+
+### Where are our circle and square located?
+What do you mean?
+
+### Suppose we wish to determine whether some *CartesianPt* is inside of the circle?
+In that case, we must think of the circle as being drawn around the origin
+
+### And how about the square?
+There are many ways to think about the location of the square.
+
+### Pick one
+Let's say the square's southwest corner sits on the origin.
+
+### That will do. Is the *CartesianPt* with `x` coordinate 10 and `y` coordinate 10 inside the square?
+It is one one of the vertice
+
+### And how about the circle?
+Certainly not, because the circle's radius is 10, but the distance of the point to the origin is 14.
+
+### Are all circles and squares located at the origin?
+We have no choice so far, because *Circle* and *Square* only contain one field each:
+the radius and the length of a side, respectively.
+
+### This is where *Trans* comes in. What is `new Trans(new CartesianPt(5,6), new Circle(1O))`?
+It's a circle with radius of 10 that its center is on the *CartesianPt* with coordinates `x` = 5 and `y` = 6
+
+### How de we place a square's southwest corner at `new CartersianPt(5, 6)`
+By using *Trans* again `new Trans(new CartesianPt(5,6), new Square(1O))`
+
+### Is `new CartesianPt(10, 10) inside either the circle or the square we just refered?
+Yes, is inside both
+
+### How do we determine whether some point is inside a circle?
+We se if the point's distance to origin is less than the circle radius
+
+### How do we determine whether some point is inside a square?
+If the square is located at the origin, it is simple.
+We check whether the point's `x` coordinate is between 0 and `s`, the length of the side of the square.
+
+### Is that all?
+No, we also need to do the same with the `y` coordinate
+
+### Aren't we on a roll?
+It is still not clear how to check these things when the circle or the square are not located at the origin
+
+### Let's take a look at our circle around `new CartesianPt(5,6)` again. Can we think of this point as the origin?
+We can if we translate all other points by a certain amount
+
+### By how much?
+By 5 in the `x` direction and 6 in the `y` direction
+
+### How could we translate the points by an appropriate amount?
+We could subtract the appropriate amount from each point.
+
+### Is there a method in *PointD* that accomplishes that?
+Yes! `minus` can do that
+
+### Indeed. And now we can define the visitor *HasPtV*,
+### whose methods determine whether some *ShapeD* has a *PointD* inside of it.
+```java
+class HasPtV implements ShapeVisitorI {
+  PointD p;
+
+  HasPtV(PointD _p) {
+    p = _p;
+  }
+
+  public boolean forCircle(int r) {
+    return p.distanceToO() <= r;
+  }
+
+  public boolean forSquare(int s) {
+    return p.x <= s && p.y <= s;
+  }
+
+  public boolean forTrans(PointD q, ShapeD s) {
+    return s.accept(new HasPtV(p.minus(q)));
+  }
+}
+```
+The three methods put into algebra what we just discussed.
+
+### What is the value of
+```java
+new Circle(10)
+  .accept(
+    new HasPtV(new CartesianPt(10,10)))
+```
+It's **false**
+
+### ### What is the value of
+```java
+new Square(10)
+  .accept(
+    new HasPtV(new CartesianPt(10,10)))
+```
+**true**, since both `x` and `y` are 10 which is the length of the side of the square
+
+### Let's consider something a bit more interesting. What is the value of
+```java
+new Trans(
+  new CartesianPt(5,6), new Circle(10))
+.accept(
+    new HasPtv(new CartesianPt(10,10)))?
+```
+We already considered that one, too. The value is true, because the circle's origin is at `new CartesianPt(5,6)`.
+
+###  Right. And how about this:
+```java
+new Trans(
+  new CartesianPt(5,4),
+  new Trans(
+    new CartesianPt(5,6),
+    new Circle(10)))
+.accept(
+  new HasPtv(new CartesianPt(10,10)))
+```
+Jesus
+
+### But what is the value?
+Ok, first we need to know if
+```java
+new Trans(
+    new CartesianPt(5,6),
+    new Circle(10)))
+.accept(
+  new HasPtv(new CartesianPt(5,6))) // (10 - 5, 10 - 4)
+```
+is **true** or **false**
+
+### And then?
+Then we need to know the value
+```java
+new Circle(10).accept(new CartesianPt(0, 0)) // (5 - 5, 6 - 6)
+```
+which is **true**
+
+### Very good. Can we nest *Trans* three times?
+We can nest them any times we want
+
+### Ready to begin?
+Oh baby
+
+### How can we project a cube of cheese to a piece of paper?
+It becomes a square
+
+### And the orange on top?
+A circle
+
+### Can we think of the two objects as one?
+We can, but we have no way of saying that a circle and a square belong together
+
+### Here is our way
+```java
+class Union extends ShapeD {
+  ShapeD s;
+  ShapeD t;
+
+  Union(ShapeD _s, ShapeD _t) {
+    s = _s;
+    t = _t;
+  }
+
+  boolean accept(ShapeVisitorI ask) {
+    return //....
+  }
+}
+```
+And what about `accept`?
+
+### What do we know from *Circle*, *Square* and *Trans* about `accept`?
+They all use their respective method of *ShapeVisitorI*
+
+### So what should we do now?
+Create a method on *ShapeVisitorI* for *Union*
+
+### Correct, except that we won't allow ourselves to change *ShapeVisitorI* .
+Why?
+
+### Just to make the problem more interesting
+Hmm...
+
+### We would be stuck, but fortunately we can extend **interface**s. Take a look at this.
+```java
+interface UnionVisitorI extends ShapeVisitorI {
+  boolean forUnion(ShapeD s, ShapeD t);
+}
+```
+Wow, so we can extend **interface**s the way we extend **class**es
+
+### Yes. This extension produces an interface that contains
+### all the obligations (i.e., names of methods and what they consume and produce)
+### of ShapeVisitorI and the additional one named `forUnion`.
+#### Unlike a class, an interface can actually extend several other interfaces.
+#### A class can implement several different interfaces.
+Does that mean accept in *Union* should receive a *UnionVisitorI*, so that it can use the `forUnion` method?
+
+### Yes it should, but because *UnionVisitorI* extends *ShapeVisitorI, it is also a *ShapeVisitorI*
+Ve have been here before. Our `accept` method must consume a *ShapeVisitorI* and fortunately every *UnionVisitorI*
+implements a *ShapeVisitorI* , too.
+But if we know that accept consumes a *UnionVisitorI*,
+we can convert the *ShapeVisitorI* to a *UnionVisitorI* and invoke the `forUnion` method.
+
+### Here is the completed definition of *Union*
+```java
+class Union extends ShapeD {
+  ShapeD s;
+  ShapeD t;
+
+  Union(ShapeD _s, ShapeD _t) {
+    s = _s;
+    t = _t;
+  }
+
+  boolean accept(ShapeVisitorI ask) {
+    return ((UnionVisitorI) ask).forUnion(s, t);
+  }
+}
+```
+Nice.
+
+### Lets create a *Union* shape.
+Ok.
+```java
+new Trans(
+  new CartesianPt(12, 2),
+  new Union(
+    new Square(10),
+    new Trans(
+      new CartesianPt(4, 4),
+      new Circle(5))))
+```
+
+### That's an interesting shape. Should we check whether `new CartesianPt(12,16)` is inside?
+We can't. *HasPtV* is only a *ShapeVisitorI*, not a *UnionVisitorI*
+
+### Could it be a *UnionVisitorI*?
+No since it does not have the `forUnion` method
+
+### Define *UnionHasPtV`, which extends *HasPtV* with an appropriate method `forUnion`
+```java
+class UnionHasPtV extends HasPtV implements UnionVisitorI {
+  UnionHasPtV(PointD _p) {
+    super(_p);
+  }
+
+  public boolean forUnion(ShapeD s, ShapeD t) {
+    return s.accept(this) || t.accept(this);
+  }
+}
+```
+
+### Does *UnionHasPtV* contain `forUnion`?
+Yes
+
+### Is *UnionHasPtV* a *UnionVisitorI*?
+Also yes, since it implements *UnionVisitorI*
+
+### Let's see whether it works. What should be the value of
+```java
+new Trans(
+  new CartesianPt(3, 7),
+  new Union(
+    new Square(10),
+    new Circle(10)))
+.accept(
+  new UnionHasPtV(
+    new CartesianPt(13, 17)))
+```
+After translating we know we are asking if the *CartesianPt(10, 10)* is inside the *Union*
+Since, both `x` and `y` are 10 and we know that the length of the side of the square is also 10,
+we can concluded that the point is inside the *Union*, so the value should be **true**
+
+### Let's see whether the value of
+```java
+new Trans(
+  new CartesianPt(3, 7),
+  new Union(
+    new Square(10),
+    new Circle(10)))
+.accept(
+  new UnionHasPtV(
+    new CartesianPt(13, 17)))
+```
+Usually we start by determining what kind of object we are working with.
+
+### And?
+It's a *ShapeD*
+
+### How did we construct this shape?
+With *Trans*
+
+### Which method should we use on it?
+`forTrans`
+
+### Where is `forTrans` defined?
+It is defined in *HasPtV*
+
+### So what should we do now?
+We need to determine the value of
+```java
+new Union(
+    new Square(10),
+    new Circle(10))
+.accept(
+  new HasPtV( // !!! This is now a *HasPtV* because of `forTrans`
+    new CartesianPt(10, 10)))
+```
+
+### What type of object is
+```java
+new Union(
+    new Square(10),
+    new Circle(10))
+```
+An *Union* of course
+
+### So which method should we use on it?
+`forUnion`
+
+### How de we find the appropriate `forUnion` method?
+In `accept`, which we defined in *Union* and invoke like `((UnionVisitorI) ask).forUnion(s, t);`
+
+### Is an instance of *HasPtV* a *UnionVisitorI*?
+No!
+
+### Does it contain the method `forUnion`?
+Unfortunately no
+
+### Then what is the value of
+```java
+new Union(
+    new Square(10),
+    new Circle(10))
+.accept(
+  new HasPtV(
+    new CartesianPt(10, 10)))
+```
+It has no value. (It actually raises a *RunTimeException*)
+
+### We should have prepared this extension in a better way.
+How?
+
+### Here is the definition of *HasPtV* that we should have provided if we wanted to extend it without making changes
+```java
+class HasPtV implements ShapeVisitorI {
+  PointD p;
+
+  HasPtV(PointD _p) {
+    p = _p;
+  }
+
+  // !!!!!!!!!!
+  ShapeVisitorI newHasPtV(PointD p) {
+    return new HasPtV(p);
+  }
+
+  public boolean forCircle(int r) {
+    return p.distanceToO() <= r;
+  }
+
+  public boolean forSquare(int s) {
+    return (p.x <= s) && (p.y <= s);
+  }
+
+  public boolean forTrans(PointD q, ShapeD s) {
+    return s.accept(newHasPtV(p.minus(q)));
+  }
+}
+```
+### How does this definition differ from the previous one?
+This definition has a `newHasPtV` method that is used in `forTrans` that returns a *ShapeVisitorI*
+
+### Good. What does `newHasPt` produce?
+A *ShapeVisitorI*
+
+### And how does it produce that?
+By creating an **new** *HasPtV*
+
+### Is `newHasPt` like a constructor?
+Yeah, kind of
+
+### Does that mean the new definition of *HasPtV* and the previous one are really the same?
+They are mostly indistinguishable. Both `forTrans`es, the one in the previous and
+the one in the new definition of *HasPtV*, produce the same values when they consume the same values.
+
+### Ok. But how does that help us with our problem?
+Who knows?
+
+### Can we override `newHasPt` when we extend *HasPtV*?
+Sure we can
+
+### Let's override `newHasPt` in *UnionHasPtV*
+We need to make sure it produces a *ShapeVisitorI*
+
+### That's true. Should it produce a *HasPtV* or a *UnionHasPtV*?
+It should produce an *UnionHasPtV*
+So it stays like this
+```java
+class UnionHasPtV extends HasPtV implements UnionVisitorI {
+  UnionHasPtV(PointD _p) {
+    super(_p);
+  }
+
+  ShapeVisitorI newHasPtV(PointD p) {
+    return new UnionHasPtV(p); // !!!!!!!
+  }
+
+  public boolean forUnion(ShapeD s, ShapeD t) {
+    return s.accept(this) || t.accept(this);
+  }
+}
+```
+(This is an instance of the factory method pattern)
+
+### If we assemble all this into one picture, what do we get?
+![](/chapter9/pg157.png)
+
+### What does the box mean?
+Everything outside of the box is what we designed originally and considered to be unchangeable;
+everything inside is our extension.
+
+### Does the picture convey the key idea of this chapter?
+No. It does not show the addition of a constructor-like method to *HasPtV* and how it is overridden in *UnionHasPt*
+
+### Is anything missing?
+*Square*, but that's okay
+
+### Let's see if this definition works. What is the value of
+```java
+new Trans(
+  new CartesianPt(3, 7),
+  new Union(
+    new Square(10),
+    new Circle(10)))
+.accept(
+  new UnionHasPtV(
+    new CartesianPt(13, 17)))
+```
+This shape is a *Trans*
+
+### Which method should we use on it?
+`forTrans`
+
+### Where is `forTrans` defined?
+In *HasPtV*
+
+### So what should we do now?
+We find out what the value of
+```java
+new Union(
+    new Square(10),
+    new Circle(10))
+.accept(
+  this.newHasPtV(
+    new CartesianPt(10, 10)))
+```
+
+### What is **this**?
+It's the current visitor
+
+### And how does that work?
+We determine the value of
+```java
+this.newHasPtV(
+  new CartesianPt(10, 10))
+```
+and use `accept` for the rest
+
+### And what do we create?
+We create a **new** *UnionHasPtV*
+
+### What is the value of
+```java
+new Union(
+    new Square(10),
+    new Circle(10))
+.accept(
+  new UnionHasPtV(
+    new CartesianPt(10, 10)))
+```
+It's the result of the `forUnion` method
+
+### How do we know that?
+First we determine the value of
+```java
+new Square(10)
+  .accept(
+    new UnionHasPtV(
+      new CartesianPtV(10, 10)))
+```
+and if it is **true** we are done
+
+### Is it **true**?
+Yes it is
+
+### Are we happy now?
+Ecstatic
+
+### Is it good to have extensible definitions?
+Yes. People should use extensible definitions if they want her code to be used more than once
+
+### Very well. Does this mean we can put together flexible and extensible definitions
+### if we use visitor protocols with these constructor-like methods?
+Yes, we can and should always do so
+
+### And why is that?
+Because no program is ever finished
+
+## Chapter 10
+
+### Have you ever wondered where the pizza pies come from?
+You should have, because someone need to make the pizza pie
+
+### Here is our pizza pieman.
+```java
+class PiemanM implements PiemanI {
+  PieD p = new Bot();
+
+  public int addTop(Object t) {
+    p = new Top();
+
+    return accTop(t);
+  }
+
+  public int remTop(Object t) {
+    p = (PieD)p.accept(new RemV(t));
+
+    return accTop(t);
+  }
+
+  public int substTop(Object n, Object o) {
+    p = (PieD)p.accept(new SubstV(n, o));
+
+    return accTop(n);
+  }
+
+  public int accTop(Object o) {
+    return ((Integer) p.accept(new Occurs(o))).intValue();
+  }
+}
+```
+#### The *M* tells us that the class manages a data structure
+This is beyond anything we have seen before
+
+### How so? Haven't we seen *PieD*, *Top* and *Bot*?
+That's true
+
+### And haven't we seen visitors like *RemV*, *SubstV* and *OccursV* for various datatypes?
+Also true
+
+### Here is the **interface** for *PiemanI*
+```java
+interface PiemanI {
+  int addTop(Object t);
+  int remTop(Object t);
+  int substTop(Object n, Object o);
+  int accTop(Object o);
+}
+```
+What about `p`?
+
+### We don't specify fields in interfaces. And in any case, we don't want anybody else to see `p`.
+Whatever
+
+### Here are *PieVisitorI* and *PieD*
+```java
+interface PieVisitorI {
+  Object forBot();
+  Object forTop(Object t, PieD r);
+}
+
+abstract class PieD {
+  abstract Object accept(PieVisitorI ask);
+}
+```
+### Define *Bot* and *Top*
+```java
+abstract class PieD {
+  abstract Object accept(PieVisitorI ask);
+}
+
+class Bot extends PieD {
+  Object accept(PieVisitorI ask) {
+    return ask.forBot();
+  }
+}
+
+class Top extends PieD {
+  Object t;
+  PieD r;
+
+  Top(Object _t, PieD _r) {
+    t = _t;
+    r = _r;
+  }
+
+  Object accept(PieVisitorI ask) {
+    return ask.forTop(t, r);
+  }
+}
+```

@@ -29,6 +29,21 @@ class CartesianPt extends PointD {
   }
 }
 
+class ShadowedCartesianPt extends CartesianPt {
+  int deltaX;
+  int deltaY;
+
+  ShadowedCartesianPt(int _x, int _y, int _deltaX, int _deltaY) {
+    super(_x, _y);
+    deltaX = _deltaX;
+    deltaY = _deltaY;
+  }
+
+  int distanceToO() {
+    return new CartesianPt(x + deltaX, y + deltaY).distanceToO();
+  }
+}
+
 class ManhattanPt extends PointD {
   ManhattanPt(int _x, int _y) {
     super(_x, _y);
