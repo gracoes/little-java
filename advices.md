@@ -17,3 +17,6 @@ don't forget to create a new visitor.
 
 8. If a datatype may have to be extended, be foward looking and
 use a constructor-like (overridable) method so that visitors can be extended, too
+
+9. When modifications to objects are needed, use a class to isolate the operations that modify objects.
+Otherwise, beware the consequences of your actions.

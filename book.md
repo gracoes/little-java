@@ -6584,7 +6584,7 @@ class PiemanM implements PiemanI {
     return accTop(n);
   }
 
-  public int accTop(Object o) {
+  public int occTop(Object o) {
     return ((Integer) p.accept(new Occurs(o))).intValue();
   }
 }
@@ -6604,7 +6604,7 @@ interface PiemanI {
   int addTop(Object t);
   int remTop(Object t);
   int substTop(Object n, Object o);
-  int accTop(Object o);
+  int occTop(Object o);
 }
 ```
 What about `p`?
@@ -6649,3 +6649,486 @@ class Top extends PieD {
   }
 }
 ```
+
+### Here is *OccursV*. It counts how often some topping occurs on a pie.
+```java
+class OccursV implements PieVisitorI {
+  Object a;
+
+  Occurs(Object _a) {
+    a = _a;
+  }
+
+  public Object forBot() {
+    return Integer.valueOf(0);
+  }
+
+  public Object forTop(Object t, PieD r) {
+    if (t.equals(a)) {
+      return Integer.valueOf(((Integer)r.accept(this)).intValue() + 1);
+    }
+
+    return r.accept(this);
+  }
+}
+```
+And this visitor substitutes one good topping for another
+```java
+class SubstV implements PieVisitorI {
+  Object n;
+  Object o;
+
+  SubstV(Object _n, Object _o) {
+    n = _n;
+    o = _o;
+  }
+
+  public PieD forBot() {
+    return new Bot();
+  }
+
+  public PieD forTop(Object t, PieD r) {
+    if (o.equals(t)) {
+      return new Top(n, (PieD)r.accept(this));
+    }
+
+    else
+      return new Top(t, (PieD)r.accept(this));
+  }
+}
+```
+
+### Great! Now we have almost all the visitors for our pieman. Define *RemV*, which removes a topping from a pie
+```java
+class RemV implements PieVisitorI {
+  Object o;
+
+  RemV(Object _o) {
+    o = _o;
+  }
+
+  public Object forBot() {
+    return new Bot();
+  }
+
+  public Object forTop(Object t, PieD r) {
+    if (t.equals(o)) {
+      return r.accept(this);
+    }
+
+    return new Top(t, (PieD)r.accept(this));
+  }
+}
+```
+
+### Now we are ready to talk. What is the value of `new PiemanM().occTop(new Anchovy())`
+We first create a *PiemanM* and then ask how many anchovies occur on the pie.
+
+### Which pie?
+The pie named `p` in the new *PiemanM*
+
+### And how many anchovies are on that pie?
+Zero
+
+### And what is the value of `new PiemanM().addTop(new Anchovy())`?
+That's where those stand-alone semicolons come in again. They were never explained.
+
+### True. If we wish to determine the value of `new PiemanM().addTop(new Anchovy())`, we must understand that
+```java
+p = new Top(new Anchovy(), p)
+;
+return accTop(new Anchovy())
+```
+### means?
+Yes we must understand that. There is no number `x` in the world for which `x = x + 1` so why should we expect
+there to be a Java `p` such that `p = new Top(new Anchovy(), p)`
+
+### That's right. But that's what happens when you one too many double expressos.
+So what does it mean?
+
+### Here it means that `p` changes and that future references to `p` reflect the change
+And the change is that `p` has a new topping, right?
+
+### When does the future begin?
+Does it begin below the stand-alone semicolon?
+
+### That's precisely what a stand-alone semicolon means. Now do we know what `return accTop(new Anchovy())` produces?
+An **int** that represents the number of anchovies on the pie `p`
+
+### And how many are there?
+Just one
+
+### And now what is the value of `new PiemanM().addTop(new Anchovy())`?
+It is 1
+
+### Take a look at this: `PiemanI y = new PiemanM()`
+Ok, `y` stands for some pieman
+
+### What is the value of `y.addTop(new Anchovy())`?
+It's 1, we only have 1 anchovy
+
+### And now what is the value of `y.substTop(new Tuna(),new Anchovy())`?
+It's one since the pie only has 1 tuna
+
+### Correct. So what is the value of `y.occTop(new Anchovy())`?
+It's 0 since the pie no longer has anchovies
+
+### And now take a look at this
+```java
+PiemanI yy = new PiemanM()
+```
+### What is the value of
+```java
+yy.addTop(new Anchovy())
+;
+yy.addTop(new Anchovy())
+;
+yy.addTop(new Salmon())
+;
+...
+```
+What are the `...` doing at the end?
+
+### Because this is only half of what we want to look at. Here is the other half
+```java
+yy.addTop(new Tuna())
+;
+yy.addTop(new Tuna())
+;
+yy.substTop(new Tuna(), new Anchovy())
+;
+```
+It returns 4 since there were already two tunas and the two anchovies were substituted by two tunas which
+brings the total of tunas to 4
+
+### And what is the value of `yy.remTop(new Tuna())` after we are through with all that?
+It's 0 because we remove all the *Tuna*s
+
+### Does that mean `remTop` always produces O?
+Yep
+
+### Now what is the value of `yy.occTop(new Salmon())`?
+1 because there is only one salmon in the pie
+
+### And how about `y.occTop(new Salmon())`?
+It's 0
+
+### Is yy the same pieman as before?
+No, it changed
+
+### So is it the same one?
+When we eat a pizza pie, we change, but we are still the same.
+
+### Vhen we asked `yy` to substitute all anchovies by tunas, did the pie change?
+The `p` in `yy` changed, nothing else
+
+### Does that mean that anybody can write `yy.p = new Bot()` and thus change a pieman like `yy`?
+No because `yy`'s type is *PiemanI*, `p` isn't available. Only the methods
+
+### Isn't it good that we didn't include `p` in PiemanI?
+It sure is, with this trick we can prevent others from changing `p` (or parts of p) in strange ways.
+Everything is clear now.
+
+### Can we define a different version of *SubstV* so that it changes toppings the way a pieman changes his pies?
+We can't do that yet.
+
+### Compare this new *PieVisitorI* with the first one in this chapter
+```java
+interface PieVisitorI {
+  Object forBot(Bot that);
+  Object forTop(Top that);
+}
+```
+It isn't all that different. A *PieVisitorI* must still provide two methods: `forBot` and `forTop`,
+except that the former now consumes a *Bot* and the latter a *Top*.
+
+### True. Here is the unchanged datatype
+```java
+abstract class PieD {
+  abstract Object accept(PieVisitorI ask);
+}
+```
+### Define the *Bot* variant
+It's pretty similar
+```java
+class Bot extends PieD {
+  Object accept(PieVisitorI ask) {
+    return ask.forBot(this);
+  }
+}
+```
+
+### Why does it use **this**?
+Because now `forBot` needs a *Bot* instance and that's exactly what **this** is
+
+### That's progress. And that's what happens in *Top*, too.
+```java
+class Top extends PieD {
+  Object t;
+  PieD r;
+
+  Top(Object _t, PieD _r) {
+    t = _t;
+    r = _r;
+  }
+
+  Object accept(PieVisitorI ask) {
+    return ask.forTop(this);
+  }
+}
+```
+Interesting
+
+### Modify *OccursV* so that it implements the new *PieVisitorI* .
+```java
+class OccursV implements PieVisitorI {
+  Object a;
+
+  Occurs(Object _a) {
+    a = _a;
+  }
+
+  public Object forBot(Bot that) {
+    return Integer.valueOf(0);
+  }
+
+  public Object forTop(Top that) {
+    if (that.t.equals(a)) {
+      return Integer.valueOf(((Integer)that.r.accept(this)).intValue() + 1);
+    }
+
+    return that.r.accept(this);
+  }
+}
+```
+
+### How does `forBot` change?
+It consume a *Bot* now as per definition on the protocol
+
+### How does `forTop` change?
+Instead of receiveing an *Object* and a *PieD* it now receives a *Top* `that` and it compares `that.t` to the field `a`
+to count the occurences of `a`
+
+### Isn't that easy?
+Yep
+
+### Then try *RemV*
+```java
+class RemV implements PieVisitorI {
+  Object o;
+
+  RemV(Object _o) {
+    o = _o;
+  }
+
+  public Object forBot(Bot that) {
+    return new Bot();
+  }
+
+  public Object forTop(Top that) {
+    if (that.t.equals(o)) {
+      return that.r.accept(this);
+    }
+
+    return new Top(that.t, (PieD)that.r.accept(this));
+  }
+}
+```
+
+### Do we need to do *SubstV*?
+It's the same thing
+
+### And indeed, it is. Happy now?
+So far, so good. But what's the point of this exercise?
+
+### Oh, *PointD*s? They will show up later
+...
+
+###  Here is the point. What is new about this version of *SubstV*?
+```java
+class SubstV implements PieVisitorI {
+  Object n;
+  Object o;
+
+  SubstV(Object _n, Object _o) {
+    n = _n;
+    o = _o;
+  }
+
+  public PieD forBot(Bot that) {
+    return that;
+  }
+
+  public PieD forTop(Top that) {
+    if (o.equals(t)) {
+      that.t = n
+      ;
+      that.r.accept(this)
+      ;
+      return that;
+    }
+
+    else {
+      that.r.accept(this)
+      return that;
+    }
+  }
+}
+```
+We no longer use **new** on `forBot` and `forTop`, instead we just change and return `that`
+
+### Don't they say "no **new**s is good news?"
+Does this saying apply here, too?
+
+### Yes, because we want to define a version of *SubstV* that modifies toppings without constructing a **new** pie
+That's a way of putting it
+
+### What do the methods of *SubstV* always **return**?
+`that`, which is the object they consume
+
+### So how do they substitute toppings?
+By changing `that`'s `t` field
+
+### Correct. And from here on, `that.t` holds the new topping. What is `that.r.accept(this)` about?
+In the previous *SubstV*, `r.accept(this)` created a new pie from `r` with all toppings appropriately substituted.
+In our new version, `that.r.accept(this)` modifies the pie `r` so that below the following semicolon it contains the
+appropriate toppings
+
+### Is there anything else to say about the new *SubstV*?
+Not really.
+
+### Do we have to change *PiemanM*?
+No, we didn't change what the visitors do, we only changed how they do the things
+
+### Is it truly safe to modify the toppings of a pie?
+Yes, because the *PiemanM* manages the toppings of `p`, and nobody else sees `p`.
+
+### Can we do *LtdSubstV* now without creating new instances of *LtdSubstV* or *Top*?
+Now that's a piece of pie.
+
+### Here is a true dessert. It will help us understand what the point of state is.
+```java
+abstract class PointD {
+  int x;
+  int y;
+
+  PointD(int _x, int _y) {
+    x = _x;
+    y = _y;
+  }
+
+  boolean closerTo(PointD p) {
+    return distanceToO() <= p.distanceToO();
+  }
+
+  PointD minus(PointD p) {
+    return new CartesianPt(x - p.x, y - p.y);
+  }
+
+  abstract int distanceToO();
+}
+```
+
+### The datatype has three extensions.
+```java
+class CartesianPt extends PointD {
+  CartesianPt(int _x, int _y) {
+   super(_x, _y);
+  }
+
+  int distanceToO() {
+    return (int)(Math.sqrt(x * x + y * y));
+  }
+}
+
+class ManhattanPt extends PointD {
+  ManhattanPt(int _x, int _y) {
+    super(_x, _y);
+  }
+
+  int distanceToO() {
+    return x + y;
+  }
+}
+
+class ShadowedManhattanPt extends ManhattanPt {
+  int deltaX;
+  int deltaY;
+
+  ShadowedManhattanPt(int _x, int _y, int _deltaX, int _deltaY) {
+    super(_x, _y);
+    deltaX = _deltaX;
+    deltaY = _deltaY;
+  }
+
+  int distanceToO() {
+    return super.distanceToO() + deltaY + deltaY;
+  }
+}
+```
+
+### Aren't we missing a variant?
+Yes, we are missing *ShadowedCartesianPt*
+
+### Good enough. We won't need it. Here is one point `new ManhattanPt(1,4)`
+### If this point represents a child walking down the streets of Manhattan, how do we represent his movement?
+Shouldn't we add a method that changes all the fields of the points?
+
+
+### Yes. Add to *PointD* the method `moveBy`, which consumes two **int**s and changes the fields of a point
+First we must know what the method is supposed to produce.
+
+### The method should return the new distance to the origin
+```java
+abstract class PointD {
+  int x;
+  int y;
+
+  PointD(int _x, int _y) {
+    x = _x;
+    y = _y;
+  }
+
+  boolean closerTo(PointD p) {
+    return distanceToO() <= p.distanceToO();
+  }
+
+  PointD minus(PointD p) {
+    return new CartesianPt(x - p.x, y - p.y);
+  }
+
+  int moveBy(int _x, int _y) {
+    x = x + _x;
+    y = y + _y;
+
+    return distanceToO();
+  }
+
+  abstract int distanceToO();
+}
+```
+
+### Let `ptChild` stand for `new ManhattanPt(1,4)` What is the value of `ptChild.distanceToO()`?
+It is 1 + 4, which is 5
+
+### What is the value of `ptChild.moveBy(2,8)`?
+It's (1 + 2) + (4 + 8), which is 15
+
+### Good. Now let's watch a child with a helium-filled balloon that casts a shadow. Let `ptChildBalloon` be
+### `new ShadowedManhattanPt(1,4,1,1)` What is the value of `ptChildBalloon.distanceToO()`?
+It's 1 + 4 + 1 + 1, which is 7
+
+### What is the value of `ptChildBalloon.moveBy(2,8)`?
+It's 15 + 2 wich is 17
+
+### Did the balloon move, too?
+Yep
+
+### Isn't that powerful?
+It sure is. We added one method, used it and everything moved
+
+### The more things change, the cheaper our desserts get.
+Yes, but to get to the dessert, we had to work quite hard.
+
+### Correct but now we are through and its time to go out and to celebrate with a grand dinner
+Don't forget to leave a tip
